@@ -1,5 +1,7 @@
 #include"Image.hpp"
 
+#include<iostream>
+
 const char * const identifier = "hilaire_r";
 const char * const informations = "";
 
@@ -162,7 +164,7 @@ void GrayImage::clear(uint8_t color)
 /// @param y Coordonnée sur l'axe des ordonnées du coin supérieur gauche du cadre.
 /// @param w Largeur du cadre en pixels.
 /// @param h Hauteur du cadre en pixels.
-/// @param color Couleur (en niveaux de gris) du cadre.
+/// @param color Couleur (en niveaux de gris) du cadre à tracer.
 void GrayImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, uint8_t color)
 {
     if (x>width || y>height)
@@ -183,7 +185,7 @@ void GrayImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, uint8_t
 /// @param y Coordonnée sur l'axe des ordonnées du coin supérieur gauche du rectangle.
 /// @param w Largeur du rectangle en pixels.
 /// @param h Hauteur du rectangle en pixels.
-/// @param color Couleur (en niveaux de gris) du rectangle.
+/// @param color Couleur (en niveaux de gris) du rectangle à tracer.
 void GrayImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t color)
 {
     if (x>width || y>height)
@@ -329,11 +331,11 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     uint16_t w = *reinterpret_cast<uint16_t*>(&header[12]),
              h = *reinterpret_cast<uint16_t*>(&header[14]);
     ColorImage* image = new ColorImage(w, h);
-
-    is.seekg(*reinterpret_cast<uint16_t*>(&header[0])+18);
         
-    if (*reinterpret_cast<uint16_t*>(&header[2])==2)
+    if (*reinterpret_cast<uint8_t*>(&header[2])==2 && *reinterpret_cast<uint8_t*>(&header[1])==0)
     {
+        is.seekg(*reinterpret_cast<uint8_t*>(&header[0])+18);
+
         if (*reinterpret_cast<uint8_t*>(&header[17])==0)
         {
             for (uint16_t y=h-1; y>=0; y--)
@@ -355,28 +357,9 @@ ColorImage* ColorImage::readTGA(std::istream& is)
                 }
         }
     }
-    else if (*reinterpret_cast<uint16_t*>(&header[2])==1)
+    else if (*reinterpret_cast<uint8_t*>(&header[2])==1 && *reinterpret_cast<uint8_t*>(&header[1])==1)
     {
-        if (*reinterpret_cast<uint8_t*>(&header[17])==0)
-        {
-            for (uint16_t y=h-1; y>=0; y--)
-                for (uint16_t x=0; x<w; x++)
-                {
-                    image->pixel(x,y).b = is.get();
-                    image->pixel(x,y).g = is.get();
-                    image->pixel(x,y).r = is.get();
-                }
-        }
-        else if (*reinterpret_cast<uint8_t*>(&header[17])==32)
-        {   
-            for (uint16_t y=0; y<h; y++)
-                for (uint16_t x=0; x<w; x++)
-                {
-                    image->pixel(x,y).b = is.get();
-                    image->pixel(x,y).g = is.get();
-                    image->pixel(x,y).r = is.get();
-                }
-        }
+        // Lecture d'images tga avec palette de couleur RGB 24bits ...
     }
     else
     {
@@ -385,6 +368,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
         throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car elle n'est pas au format TGA RGB non-compressé ni au format TGA avec palette 24bits non-compressé.");
     }
     delete [] header;
+    std::cout << "ok" << std::endl;
     return image;
 }
 
@@ -479,7 +463,7 @@ void ColorImage::clear(Color color)
 /// @param y Coordonnée sur l'axe des ordonnées du coin supérieur gauche du cadre.
 /// @param w Largeur du cadre en pixels.
 /// @param h Hauteur du cadre en pixels.
-/// @param color Couleur Color (en RGB) du cadre.
+/// @param color Couleur de la classe Color (en RGB) du cadre à tracer.
 void ColorImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, Color color)
 {
     if (x>width || y>height)
@@ -500,7 +484,7 @@ void ColorImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, Color 
 /// @param y Coordonnée sur l'axe des ordonnées du coin supérieur gauche du rectangle.
 /// @param w Largeur du rectangle en pixels.
 /// @param h Hauteur du rectangle en pixels.
-/// @param color Couleur Color (en RGB) du rectangle. 
+/// @param color Couleur de la classe Color (en RGB) du rectangle à tracer. 
 void ColorImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, Color color)
 {
     if (x>width || y>height)
@@ -557,4 +541,55 @@ ColorImage* ColorImage::bilinearScale(uint16_t w, uint16_t h) const
             ret->pixel(xPrim, yPrim) = (1-mu)*((1-lambda)*p1+lambda*p2)+mu*((1-lambda)*p3+lambda*p4);
         }
     return ret;
+}
+
+/// @brief Trace une ligne en suivant l'algorithme de Bresenham dans l'instance courante de ColorImage.
+/// @param x1 Coordonnée sur l'axe des abcisses du point d'origine de la ligne.
+/// @param y1 Coordonnée sur l'axe des ordonnées du point d'origine de la ligne.
+/// @param x2 Coordonnée sur l'axe des abcisses du point d'arrivée de la ligne.
+/// @param y2 Coordonnée sur l'axe des ordonnées du point d'arrivée de la lignee.
+/// @param pixel_value Couleur de la classe Color (en RGB) de la ligne à tracer.
+void ColorImage::line(ushort x1, ushort y1, ushort x2, ushort y2, const Color pixel_value)
+{
+    ushort x = x1;
+    ushort y = y1;
+    unsigned int longX = x2-x1;
+    unsigned int longY = y2-y1;
+
+    if(longY<longX)
+    {
+        const int c1 = 2*(longY-longX);
+        const int c2 = 2*longY;
+        int crit = c2-longX;
+        while(x<=x2)
+        {
+            pixel(x,y) = pixel_value;
+            if(crit>=0)
+            {
+                y++;
+                crit = crit+c1;
+            }
+            else
+                crit = crit+c2;
+            x++;
+        }
+    }
+    else
+    {
+        const int c1 = 2*(longX-longY);
+        const int c2 = 2*longX;
+        int crit = c2-longY;
+        while(y<=y2)
+        {
+            pixel(x,y) = pixel_value;
+            if(crit>=0)
+            {
+                x++;
+                crit = crit+c1;
+            }
+            else
+                crit = crit+c2;
+            y++;
+        }
+    }
 }

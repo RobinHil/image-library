@@ -133,20 +133,30 @@ int main()
     // chat->writeTGA(osChatNoRLE, false);
 
     // delete chat;
+    
+    {
+        ColorImage *img = new ColorImage(400, 400);
+        img->clear(Color(255, 0, 0));
 
-    ColorImage *img = new ColorImage(400, 400);
-    img->clear(Color(255, 0, 0));
-    for (int x=0; x<img->getWidth(); x+=10)
-        img->line(0, 0, x, 400, Color(0, 255, 0));
-    for (int y=0; y<img->getHeight(); y+=10)
-        img->line(0, 0, 400, y, Color(0, 255, 0));
-    std::ofstream osImgTGA_RLE("data/img/test_line_rle.tga");
-    img->writeTGA(osImgTGA_RLE);
-    std::ofstream osImgTGA_noRLE("data/img/test_line_norle.tga");
-    img->writeTGA(osImgTGA_noRLE, false);
-    std::ofstream osImgPPM("data/img/test_line.ppm");
-    img->writePPM(osImgPPM);
-    delete img;
+        for (int x=0; x<img->getWidth(); x+=10)
+            img->line(0, 0, x, 400, Color(0, 255, 0));
+        for (int y=0; y<img->getHeight(); y+=10)
+            img->line(0, 0, 400, y, Color(0, 255, 0));
+
+        // for (int x=img->getWidth()-1; x>=0; x-=10)
+        //     img->line(x, 400, 0, 0, Color(0, 255, 0));
+        // for (int y=img->getHeight()-1; y>=0; y-=10)
+        //     img->line(400, y, 0, 0, Color(0, 255, 0));
+
+        std::ofstream osImgTGA_RLE("data/img/test_line_rle.tga");
+        img->writeTGA(osImgTGA_RLE);
+        std::ofstream osImgTGA_noRLE("data/img/test_line_norle.tga");
+        img->writeTGA(osImgTGA_noRLE, false);
+        std::ofstream osImgPPM("data/img/test_line.ppm");
+        img->writePPM(osImgPPM);
+
+        delete img;
+    }
 
     return EXIT_SUCCESS;
 }

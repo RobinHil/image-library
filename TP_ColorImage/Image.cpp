@@ -453,9 +453,8 @@ void ColorImage::writeTGA(std::ostream& os, bool rle) const
 /// @param color Color réprésentant la couleur en RGB d'un pixel.
 void ColorImage::clear(Color color)
 {
-    for (uint16_t x=0; x<width; x++)
-        for (uint16_t y=0; y<height; y++)
-            array[y*width+x] = color;
+    for (int i=0; i<width*height; i++)
+        array[i] = color;
 }
 
 /// @brief Dessine un cadre rectangulaire d'un pixel d'épaisseur dans l'instance courante de ColorImage.
@@ -549,29 +548,76 @@ ColorImage* ColorImage::bilinearScale(uint16_t w, uint16_t h) const
 /// @param x2 Coordonnée sur l'axe des abcisses du point d'arrivée de la ligne.
 /// @param y2 Coordonnée sur l'axe des ordonnées du point d'arrivée de la lignee.
 /// @param pixel_value Couleur de la classe Color (en RGB) de la ligne à tracer.
-void ColorImage::line(ushort x1, ushort y1, ushort x2, ushort y2, const Color pixel_value)
+// void ColorImage::line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const Color pixel_value)
+// {
+//     uint16_t longX = x2-x1;
+//     uint16_t longY = y2-y1;
+
+//     short incX = x1<x2?1:-1;
+//     short incY = y1<y2?1:-1;
+
+//     if(longY<longX)
+//     {
+//         const int c1 = 2*(longY-longX);
+//         const int c2 = 2*longY;
+//         int crit = c2-longX;
+//         while(x1<=x2)
+//         {
+//             pixel(x1,y1) = pixel_value;
+//             if(crit>=0)
+//             {
+//                 y1+=incY;
+//                 crit = crit+c1;
+//             }
+//             else
+//                 crit = crit+c2;
+//             x1+=incX;
+//         }
+//     }
+//     else
+//     {
+//         const int c1 = 2*(longX-longY);
+//         const int c2 = 2*longX;
+//         int crit = c2-longY;
+//         while(y1<=y2)
+//         {
+//             pixel(x1,y1) = pixel_value;
+//             if(crit>=0)
+//             {
+//                 x1+=incX;
+//                 crit = crit+c1;
+//             }
+//             else
+//                 crit = crit+c2;
+//             y1+=incY;
+//         }
+//     }
+// }
+
+void ColorImage::line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const Color pixel_value)
 {
-    ushort x = x1;
-    ushort y = y1;
-    unsigned int longX = x2-x1;
-    unsigned int longY = y2-y1;
+    uint16_t longX = x2-x1;
+    uint16_t longY = y2-y1;
+
+    short incX = x1<x2?1:-1;
+    short incY = y1<y2?1:-1;
 
     if(longY<longX)
     {
         const int c1 = 2*(longY-longX);
         const int c2 = 2*longY;
         int crit = c2-longX;
-        while(x<=x2)
+        while(x1<=x2)
         {
-            pixel(x,y) = pixel_value;
+            pixel(x1,y1) = pixel_value;
             if(crit>=0)
             {
-                y++;
+                y1+=incY;
                 crit = crit+c1;
             }
             else
                 crit = crit+c2;
-            x++;
+            x1+=incX;
         }
     }
     else
@@ -579,17 +625,17 @@ void ColorImage::line(ushort x1, ushort y1, ushort x2, ushort y2, const Color pi
         const int c1 = 2*(longX-longY);
         const int c2 = 2*longX;
         int crit = c2-longY;
-        while(y<=y2)
+        while(y1<=y2)
         {
-            pixel(x,y) = pixel_value;
+            pixel(x1,y1) = pixel_value;
             if(crit>=0)
             {
-                x++;
+                x1+=incX;
                 crit = crit+c1;
             }
             else
                 crit = crit+c2;
-            y++;
+            y1+=incY;
         }
     }
 }

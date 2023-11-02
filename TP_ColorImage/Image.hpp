@@ -106,7 +106,7 @@ public:
     ColorImage* simpleScale(uint16_t, uint16_t) const;
     ColorImage* bilinearScale(uint16_t, uint16_t) const;
 
-    void line(ushort, ushort, ushort, ushort, const Color);
+    void line(uint16_t, uint16_t, uint16_t, uint16_t, const Color);
 };
 
 #endif

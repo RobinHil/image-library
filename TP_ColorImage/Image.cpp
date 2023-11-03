@@ -331,14 +331,14 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     uint16_t w = *reinterpret_cast<uint16_t*>(&header[12]),
              h = *reinterpret_cast<uint16_t*>(&header[14]);
     ColorImage* image = new ColorImage(w, h);
-        
-    if (*reinterpret_cast<uint8_t*>(&header[2])==2 && *reinterpret_cast<uint8_t*>(&header[1])==0)
-    {
-        is.seekg(*reinterpret_cast<uint8_t*>(&header[0])+18);
 
-        if (*reinterpret_cast<uint8_t*>(&header[17])==0)
+    is.seekg(header[0]+18);
+        
+    if (header[2]==2 && header[1]==0)
+    {
+        if (header[17]==0)
         {
-            for (uint16_t y=h-1; y>=0; y--)
+            for (uint16_t y=h; y>0; y--)
                 for (uint16_t x=0; x<w; x++)
                 {
                     image->pixel(x,y).b = is.get();
@@ -346,7 +346,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
                     image->pixel(x,y).r = is.get();
                 }
         }
-        else if (*reinterpret_cast<uint8_t*>(&header[17])==32)
+        else if (header[17]==32)
         {   
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
@@ -357,9 +357,33 @@ ColorImage* ColorImage::readTGA(std::istream& is)
                 }
         }
     }
-    else if (*reinterpret_cast<uint8_t*>(&header[2])==1 && *reinterpret_cast<uint8_t*>(&header[1])==1)
+    else if (header[2]==1 && header[1]==1)
     {
-        // Lecture d'images tga avec palette de couleur RGB 24bits ...
+        uint16_t size = header[5]+(header[6]<<8);
+        Color *palette = new Color[size];
+        for (uint16_t i=0; i<size; i++)
+        {
+            palette[i].b = is.get();
+            palette[i].g = is.get();
+            palette[i].r = is.get();
+        }
+        if (header[17]==0)
+        {
+            for (uint16_t y=h; y>0; y--)
+                for (uint16_t x=0; x<w; x++)
+                {
+                    image->pixel(x,y) = palette[uint16_t(is.get())];
+                }
+        }
+        if (header[17]==32)
+        {   
+            for (uint16_t y=0; y<h; y++)
+                for (uint16_t x=0; x<w; x++)
+                {
+                    image->pixel(x,y) = palette[uint16_t(is.get())];
+                }
+        }
+        delete [] palette;
     }
     else
     {

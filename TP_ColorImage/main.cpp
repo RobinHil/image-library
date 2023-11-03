@@ -99,17 +99,17 @@ int main()
 //     std::ofstream osColorImageChatTGARLE("data/img/tp2_chat_rle.tga", std::ios::binary);
 //     colorImageChatTGA->writeTGA(osColorImageChatTGARLE, false);
 
-    // std::ifstream isPaletteBL_TGA("data/ColorImage/palette_bl.tga", std::ios::binary);
-    // ColorImage *colorImagePaletteBL_TGA = ColorImage::readTGA(isPaletteBL_TGA);
-    // std::ofstream osPaletteBL_TGA("data/img/bl.tga", std::ios::binary);
-    // colorImagePaletteBL_TGA->writeTGA(osPaletteBL_TGA);
-    // delete colorImagePaletteBL_TGA;
+    std::ifstream isPaletteBL_TGA("data/ColorImage/palette_bl.tga", std::ios::binary);
+    ColorImage *colorImagePaletteBL_TGA = ColorImage::readTGA(isPaletteBL_TGA);
+    std::ofstream osPaletteBL_TGA("data/img/bl.tga", std::ios::binary);
+    colorImagePaletteBL_TGA->writeTGA(osPaletteBL_TGA);
+    delete colorImagePaletteBL_TGA;
     
-    // std::ifstream isPaletteTL_TGA("data/ColorImage/palette_tl.tga", std::ios::binary);
-    // ColorImage *colorImagePaletteTL_TGA = ColorImage::readTGA(isPaletteTL_TGA);
-    // std::ofstream osPaletteTL_TGA("data/img/tl.tga", std::ios::binary);
-    // colorImagePaletteTL_TGA->writeTGA(osPaletteTL_TGA);
-    // delete colorImagePaletteTL_TGA;
+    std::ifstream isPaletteTL_TGA("data/ColorImage/palette_tl.tga", std::ios::binary);
+    ColorImage *colorImagePaletteTL_TGA = ColorImage::readTGA(isPaletteTL_TGA);
+    std::ofstream osPaletteTL_TGA("data/img/tl.tga", std::ios::binary);
+    colorImagePaletteTL_TGA->writeTGA(osPaletteTL_TGA);
+    delete colorImagePaletteTL_TGA;
 
 //     std::ofstream osColorImageChatPPM("data/img/tp2_chat.ppm", std::ios::binary);
 //     colorImageChatTGA->writePPM(osColorImageChatPPM);
@@ -135,27 +135,27 @@ int main()
     // delete chat;
     
     {
-        ColorImage *img = new ColorImage(400, 400);
-        img->clear(Color(255, 0, 0));
+        // ColorImage *img = new ColorImage(400, 400);
+        // img->clear(Color(255, 0, 0));
 
-        for (int x=0; x<img->getWidth(); x+=10)
-            img->line(0, 0, x, 400, Color(0, 255, 0));
-        for (int y=0; y<img->getHeight(); y+=10)
-            img->line(0, 0, 400, y, Color(0, 255, 0));
+        // for (int x=0; x<img->getWidth(); x+=10)
+        //     img->line(0, 0, x, 400, Color(0, 255, 0));
+        // for (int y=0; y<img->getHeight(); y+=10)
+        //     img->line(0, 0, 400, y, Color(0, 255, 0));
 
         // for (int x=img->getWidth()-1; x>=0; x-=10)
         //     img->line(x, 400, 0, 0, Color(0, 255, 0));
         // for (int y=img->getHeight()-1; y>=0; y-=10)
         //     img->line(400, y, 0, 0, Color(0, 255, 0));
 
-        std::ofstream osImgTGA_RLE("data/img/test_line_rle.tga");
-        img->writeTGA(osImgTGA_RLE);
-        std::ofstream osImgTGA_noRLE("data/img/test_line_norle.tga");
-        img->writeTGA(osImgTGA_noRLE, false);
-        std::ofstream osImgPPM("data/img/test_line.ppm");
-        img->writePPM(osImgPPM);
+        // std::ofstream osImgTGA_RLE("data/img/test_line_rle.tga");
+        // img->writeTGA(osImgTGA_RLE);
+        // std::ofstream osImgTGA_noRLE("data/img/test_line_norle.tga");
+        // img->writeTGA(osImgTGA_noRLE, false);
+        // std::ofstream osImgPPM("data/img/test_line.ppm");
+        // img->writePPM(osImgPPM);
 
-        delete img;
+        // delete img;
     }
 
     return EXIT_SUCCESS;

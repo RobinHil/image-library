@@ -575,94 +575,86 @@ ColorImage* ColorImage::bilinearScale(uint16_t w, uint16_t h) const
 /// @param x2 Coordonnée sur l'axe des abcisses du point d'arrivée de la ligne.
 /// @param y2 Coordonnée sur l'axe des ordonnées du point d'arrivée de la lignee.
 /// @param pixel_value Couleur de la classe Color (en RGB) de la ligne à tracer.
-// void ColorImage::line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const Color pixel_value)
-// {
-//     uint16_t longX = x2-x1;
-//     uint16_t longY = y2-y1;
-
-//     short incX = x1<x2?1:-1;
-//     short incY = y1<y2?1:-1;
-
-//     if(longY<longX)
-//     {
-//         const int c1 = 2*(longY-longX);
-//         const int c2 = 2*longY;
-//         int crit = c2-longX;
-//         while(x1<=x2)
-//         {
-//             pixel(x1,y1) = pixel_value;
-//             if(crit>=0)
-//             {
-//                 y1+=incY;
-//                 crit = crit+c1;
-//             }
-//             else
-//                 crit = crit+c2;
-//             x1+=incX;
-//         }
-//     }
-//     else
-//     {
-//         const int c1 = 2*(longX-longY);
-//         const int c2 = 2*longX;
-//         int crit = c2-longY;
-//         while(y1<=y2)
-//         {
-//             pixel(x1,y1) = pixel_value;
-//             if(crit>=0)
-//             {
-//                 x1+=incX;
-//                 crit = crit+c1;
-//             }
-//             else
-//                 crit = crit+c2;
-//             y1+=incY;
-//         }
-//     }
-// }
-
-void ColorImage::line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const Color pixel_value)
+void ColorImage::line(const uint16_t& x1, const uint16_t& y1, const uint16_t& x2, const uint16_t& y2, const Color& pixel_value)
 {
-    uint16_t longX = x2-x1;
-    uint16_t longY = y2-y1;
+    pixel(x2, y2) = pixel_value;
 
-    short incX = x1<x2?1:-1;
-    short incY = y1<y2?1:-1;
+    const uint16_t longX = abs(x2-x1),
+                   longY = abs(y2-y1);
+
+    const short incX = x1<x2?1:-1,
+                incY = y1<y2?1:-1;
+
+    uint16_t x = x1,
+             y = y1;
 
     if(longY<longX)
     {
-        const int c1 = 2*(longY-longX);
-        const int c2 = 2*longY;
-        int crit = c2-longX;
-        while(x1<=x2)
+        const int16_t c1 = 2*(longY-longX),
+                      c2 = 2*longY;
+
+        int16_t crit1 = 2*longY,
+                crit2 = 2*(longY-longX);
+
+        while(x!=x2)
         {
-            pixel(x1,y1) = pixel_value;
-            if(crit>=0)
+            pixel(x, y) = pixel_value;
+            if((x<x2 && y<y2)||(x>x2 && y>y2))
             {
-                y1+=incY;
-                crit = crit+c1;
+                if(crit1>=0)
+                {
+                    y += incY;
+                    crit1 += c1;
+                }
+                else
+                    crit1 += c2;
             }
             else
-                crit = crit+c2;
-            x1+=incX;
+            {
+                if(crit2>=0)
+                {
+                    y += incY;
+                    crit2 += c1;
+                }
+                else
+                    crit2 += c2;
+            }
+            x += incX;
         }
     }
     else
     {
-        const int c1 = 2*(longX-longY);
-        const int c2 = 2*longX;
-        int crit = c2-longY;
-        while(y1<=y2)
+        const int16_t c1 = 2*(longX-longY),
+                      c2 = 2*longX;
+
+        int16_t crit1 = 2*longX,
+                crit2 = 2*(longX-longY);
+
+        while(y!=y2)
         {
-            pixel(x1,y1) = pixel_value;
-            if(crit>=0)
+            pixel(x, y) = pixel_value;
+
+            if((x<x2 && y<y2)||(x>x2 && y>y2))
             {
-                x1+=incX;
-                crit = crit+c1;
+                if(crit1>=0)
+                {
+                    x += incX;
+                    crit1 += c1;
+                }
+                else
+                    crit1 += c2;
             }
             else
-                crit = crit+c2;
-            y1+=incY;
+            {
+                if(crit2>=0)
+                {
+                    x += incX;
+                    crit2 += c1;
+                }
+                else
+                    crit2 += c2;
+            }
+            y += incY;
         }
     }
 }

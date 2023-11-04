@@ -50,7 +50,7 @@ template<typename T> void swap_bytes(T& bytes)
 /// @brief Constructeur de GrayImage à partir de ses paramètres width et height.
 /// @param w Largeur en pixels de l'image GrayImage à créer.
 /// @param h Hauteur en pixels de l'image GrayImage à créer.
-GrayImage::GrayImage(uint16_t w, uint16_t h)
+GrayImage::GrayImage(const uint16_t& w, const uint16_t& h)
     : width(w), height(h), array(nullptr)
 {
     array=new uint8_t[width*height];
@@ -156,7 +156,7 @@ void GrayImage::writeTGA(std::ostream& os) const
 
 /// @brief Efface l'image en mettant tous ses pixels à la valeur 'color'.
 /// @param color Couleur (en niveaux de gris) qui va remplacer tous les pixels de l'instance courante de GrayImage.
-void GrayImage::clear(uint8_t color)
+void GrayImage::clear(const uint8_t& color)
 {
     for (uint16_t x=0; x<width; x++)
         for (uint16_t y=0; y<height; y++)
@@ -169,7 +169,7 @@ void GrayImage::clear(uint8_t color)
 /// @param w Largeur du cadre en pixels.
 /// @param h Hauteur du cadre en pixels.
 /// @param color Couleur (en niveaux de gris) du cadre à tracer.
-void GrayImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, uint8_t color)
+void GrayImage::rectangle(const uint16_t& x, const uint16_t& y, const uint16_t& w, const uint16_t& h, const uint8_t& color)
 {
     if (x>width || y>height)
         throw std::runtime_error("Erreur: dans GrayImage::rectangle(...) impossible de dessiner le cadre car son ancrage de coordonnées (x, y) se situe en dehors de l'image.");
@@ -188,7 +188,7 @@ void GrayImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, uint8_t
 /// @param w Largeur du rectangle en pixels.
 /// @param h Hauteur du rectangle en pixels.
 /// @param color Couleur (en niveaux de gris) du rectangle à tracer.
-void GrayImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t color)
+void GrayImage::fillRectangle(const uint16_t& x, const uint16_t& y, const uint16_t& w, const uint16_t& h, const uint8_t& color)
 {
     if (x>width || y>height)
         throw std::runtime_error("Erreur: dans GrayImage::fillRectangle(...) impossible de dessiner le rectangle car son ancrage de coordonnées (x, y) se situe en dehors de l'image.");
@@ -204,7 +204,7 @@ void GrayImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ui
 /// @param w La largeur à laquelle sera rééchantillonnée l'instance courante de GrayImage.
 /// @param h La hauteur à laquelle sera rééchantillonnée l'instance courante de GrayImage.
 /// @return Pointeur sur une GrayImage qui représente l'instance courante de GrayImage rééchantillonnée.
-GrayImage* GrayImage::simpleScale(uint16_t w, uint16_t h) const
+GrayImage* GrayImage::simpleScale(const uint16_t& w, const uint16_t& h) const
 {
     GrayImage* ret = new GrayImage(w, h);
     for (uint16_t xPrim=0; xPrim<w; xPrim++)
@@ -223,7 +223,7 @@ GrayImage* GrayImage::simpleScale(uint16_t w, uint16_t h) const
 /// @param w La largeur à laquelle sera rééchantillonnée l'instance courante de GrayImage.
 /// @param h La hauteur à laquelle sera rééchantillonnée l'instance courante de GrayImage.
 /// @return Pointeur sur une GrayImage qui représente l'instance courante de GrayImage rééchantillonnée.
-GrayImage* GrayImage::bilinearScale(uint16_t w, uint16_t h) const
+GrayImage* GrayImage::bilinearScale(const uint16_t& w, const uint16_t& h) const
 {
     GrayImage* ret = new GrayImage(w, h);
     for (uint16_t xPrim=0; xPrim<w; xPrim++)
@@ -253,7 +253,7 @@ GrayImage* GrayImage::bilinearScale(uint16_t w, uint16_t h) const
 /// @param alpha Valeur décimale par laquelle multiplier une Color en RGB.
 /// @param color Color en RGB qui va être multipliée par une valeur décimale.
 /// @return Objet Color dont la valeur est 'alpha*color'.
-Color operator*(double alpha, const Color& color)
+Color operator*(const double& alpha, const Color& color)
 {
     return Color(color.r*alpha, color.g*alpha, color.b*alpha);
 }
@@ -273,7 +273,7 @@ Color operator+(const Color& c1, const Color& c2)
 /// @brief Constructeur de ColorImage à partir d'une largeur et une hauteur.
 /// @param w Largeur de l'image ColorImage à construire.
 /// @param h Hauteur de l'image ColorImage à construire.
-ColorImage::ColorImage(uint16_t w, uint16_t h)
+ColorImage::ColorImage(const uint16_t& w, const uint16_t& h)
     : width(w), height(h), array(nullptr)
 {
     array=new Color[width*height];
@@ -415,7 +415,7 @@ void ColorImage::writePPM(std::ostream& os) const
 /// @brief Ecrit une image au format TGA à partir d'un objet ColorImage.
 /// @param os Flux sortant contenant le fichier TGA où on va écrire l'instance courante de ColorImage.
 /// @param rle Bouléen indiquant si l'image à écrire doit être compressée (true par défaut) ou non-compressée (false).
-void ColorImage::writeTGA(std::ostream& os, bool rle) const
+void ColorImage::writeTGA(std::ostream& os, const bool& rle) const
 {
     if (rle)
     {
@@ -480,7 +480,7 @@ void ColorImage::writeTGA(std::ostream& os, bool rle) const
 
 /// @brief Efface l'image en mettant tous ses pixels à la valeur 'color'.
 /// @param color Color réprésentant la couleur en RGB d'un pixel.
-void ColorImage::clear(Color color)
+void ColorImage::clear(const Color& color)
 {
     for (int i=0; i<width*height; i++)
         array[i] = color;
@@ -492,7 +492,7 @@ void ColorImage::clear(Color color)
 /// @param w Largeur du cadre en pixels.
 /// @param h Hauteur du cadre en pixels.
 /// @param color Couleur de la classe Color (en RGB) du cadre à tracer.
-void ColorImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, Color color)
+void ColorImage::rectangle(const uint16_t& x, const uint16_t& y, const uint16_t& w, const uint16_t& h, const Color& color)
 {
     if (x>width || y>height)
         throw std::runtime_error("Erreur: dans ColorImage::rectangle(...) impossible de dessiner le cadre car son ancrage de coordonnées (x, y) se situe en dehors de l'image.");
@@ -511,7 +511,7 @@ void ColorImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, Color 
 /// @param w Largeur du rectangle en pixels.
 /// @param h Hauteur du rectangle en pixels.
 /// @param color Couleur de la classe Color (en RGB) du rectangle à tracer. 
-void ColorImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, Color color)
+void ColorImage::fillRectangle(const uint16_t& x, const uint16_t& y, const uint16_t& w, const uint16_t& h, const Color& color)
 {
     if (x>width || y>height)
         throw std::runtime_error("Erreur: dans ColorImage::fillRectangle(...) impossible de dessiner le rectangle car son ancrage de coordonnées (x, y) se situe en dehors de l'image.");
@@ -527,7 +527,7 @@ void ColorImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, C
 /// @param w La largeur à laquelle sera rééchantillonnée l'instance courante de ColorImage.
 /// @param h La hauteur à laquelle sera rééchantillonnée l'instance courante de ColorImage.
 /// @return Pointeur sur une ColorImage qui représente l'instance courante de ColorImage rééchantillonnée.
-ColorImage* ColorImage::simpleScale(uint16_t w, uint16_t h) const
+ColorImage* ColorImage::simpleScale(const uint16_t& w, const uint16_t& h) const
 {
     ColorImage* ret = new ColorImage(w, h);
     for (uint16_t xPrim=0; xPrim<w; xPrim++)
@@ -546,7 +546,7 @@ ColorImage* ColorImage::simpleScale(uint16_t w, uint16_t h) const
 /// @param w La largeur à laquelle sera rééchantillonnée l'instance courante de ColorImage.
 /// @param h La hauteur à laquelle sera rééchantillonnée l'instance courante de ColorImage.
 /// @return Pointeur sur une ColorImage qui représente l'instance courante de ColorImage rééchantillonnée.
-ColorImage* ColorImage::bilinearScale(uint16_t w, uint16_t h) const
+ColorImage* ColorImage::bilinearScale(const uint16_t& w, const uint16_t& h) const
 {
     ColorImage* ret = new ColorImage(w, h);
     for (uint16_t xPrim=0; xPrim<w; xPrim++)

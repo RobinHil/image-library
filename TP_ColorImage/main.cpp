@@ -6,19 +6,25 @@
 
 int main()
 {
-    // // Tests de la classe GrayImage
+    // Tests de la classe GrayImage
+    
+    {
+        GrayImage *img = new GrayImage(150, 300);
+        img->clear(255);
 
-    // GrayImage *grayImage = new GrayImage(150, 300);
-    // grayImage->clear(255);
-    // grayImage->fillRectangle(1, 2, 50, 72, 0);
-    // grayImage->fillRectangle(59, 81, 84, 61, 217);
-    // grayImage->fillRectangle(37, 200, 84, 57, 195);
-    // grayImage->rectangle(67, 3, 36, 64, 80);
-    // grayImage->rectangle(6, 92, 53, 37, 152);
-    // grayImage->rectangle(79, 179, 59, 119, 29);
-    // std::ofstream osGrayImage("data/img/tp1_carres.pgm", std::ios::binary);
-    // grayImage->writePGM(osGrayImage);
-    // delete grayImage;
+        img->fillRectangle(1, 2, 50, 72, 0);
+        img->fillRectangle(59, 81, 84, 61, 217);
+        img->fillRectangle(37, 200, 84, 57, 195);
+
+        img->rectangle(67, 3, 36, 64, 80);
+        img->rectangle(6, 92, 53, 37, 152);
+        img->rectangle(79, 179, 59, 119, 29);
+
+        std::ofstream osGrayImage("data/img/GrayImage/01-carres.pgm", std::ios::binary);
+        img->writePGM(osGrayImage);
+
+        delete img;
+    }
 
     // std::ifstream isGrayImageChat("data/GrayImage/chat.pgm", std::ios::binary);
     // GrayImage *grayImageChat = GrayImage::readPGM(isGrayImageChat);
@@ -135,25 +141,20 @@ int main()
 
     // delete chat;
     
-    // {
-    //     ColorImage *img = new ColorImage(400, 400);
-    //     img->clear(Color(255, 0, 0));
+    {
+        ColorImage *img = new ColorImage(400, 400);
+        img->clear(Color(255, 0, 0));
 
-    //     for (int x=0; x<img->getWidth(); x+=10)
-    //         img->line(0, 0, x, 400, Color(0, 255, 0));
-    //     for (int y=0; y<img->getHeight(); y+=10)
-    //         img->line(0, 0, 400, y, Color(0, 255, 0));
+        for (int x=0; x<img->getWidth(); x+=10)
+            img->line(0, 0, x, 400, Color(0, 255, 0));
+        for (int y=0; y<img->getHeight(); y+=10)
+            img->line(0, 0, 400, y, Color(0, 255, 0));
 
-    //     for (int x=0; x<img->getWidth(); x+=10)
-    //         img->line(x, 0, 400, 400, Color(0, 255, 0));
-    //     for (int y=0; y<img->getHeight(); y+=10)
-    //         img->line(0, y, 400, 400, Color(0, 255, 0));
+        std::ofstream osImgTGA("data/img/ColorImage/test_line.tga");
+        img->writeTGA(osImgTGA);
 
-    //     std::ofstream osImgTGA("data/img/test_line.tga");
-    //     img->writeTGA(osImgTGA);
-
-    //     delete img;
-    // }
+        delete img;
+    }
 
     {
         int size = 500;
@@ -169,7 +170,7 @@ int main()
             img->pixel(x, y) = Color(255, 255, 255);
         }
 
-        std::ofstream osImgTGA("data/img/test_line++.tga");
+        std::ofstream osImgTGA("data/img/ColorImage/test_line++.tga");
         img->writeTGA(osImgTGA);
 
         delete img;

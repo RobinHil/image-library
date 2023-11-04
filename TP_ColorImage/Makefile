@@ -22,4 +22,4 @@ clean ::
 	-$(RM) *.o core
 
 distclean :: clean
-	-$(RM) $(EXECSPP) data/img/*
+	-$(RM) $(EXECSPP) data/img/GrayImage/* data/img/ColorImage/*

@@ -1,6 +1,6 @@
-#include"Image.hpp"
-
 #include<iostream>
+
+#include"Image.hpp"
 
 const char * const identifier = "hilaire_r";
 const char * const informations = "";
@@ -52,7 +52,9 @@ template<typename T> void swap_bytes(T& bytes)
 /// @param h Hauteur en pixels de l'image GrayImage à créer.
 GrayImage::GrayImage(uint16_t w, uint16_t h)
     : width(w), height(h), array(nullptr)
-{array=new uint8_t[width*height];}
+{
+    array=new uint8_t[width*height];
+}
 
 /// @brief Constructeur de copie de GrayImage.
 /// @param o GrayImage d'origine dont on va construire la copie.
@@ -66,7 +68,9 @@ GrayImage::GrayImage(const GrayImage& o)
 
 /// @brief Destructeur de GrayImage.
 GrayImage::~GrayImage()
-{delete [] array;}
+{
+    delete [] array;
+}
 
 /// @brief Lit une image au format PGM.
 /// @param is Flux d'entrée contenant l'image à transformer en GrayImage.
@@ -174,10 +178,8 @@ void GrayImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, uint8_t
 
     for (uint16_t i=x; i<w+x; i++)
         for (uint16_t j=y; j<h+y; j++)
-        {
             if (i==x || j==y || i==w+x-1 || j==h+y-1)
                 pixel(i,j) = color;
-        }
 }
 
 /// @brief Dessine un rectangle dans l'instance courante de GrayImage.
@@ -273,7 +275,9 @@ Color operator+(const Color& c1, const Color& c2)
 /// @param h Hauteur de l'image ColorImage à construire.
 ColorImage::ColorImage(uint16_t w, uint16_t h)
     : width(w), height(h), array(nullptr)
-{array=new Color[width*height];}
+{
+    array=new Color[width*height];
+}
 
 /// @brief Constructeur de copie de ColorImage.
 /// @param o ColorImage d'origine dont on va construire la copie.
@@ -287,7 +291,9 @@ ColorImage::ColorImage(const ColorImage& o)
 
 /// @brief Destructeur de ColorImage.
 ColorImage::~ColorImage()
-{delete [] array;}
+{
+    delete [] array;
+}
 
 /// @brief Lit une image au format PPM.
 /// @param is Flux d'entrée contenant l'image à transformer en ColorImage.
@@ -327,7 +333,6 @@ ColorImage* ColorImage::readTGA(std::istream& is)
 {
     char *header = new char[18];
     is.read(header, 18);
-
     uint16_t w = *reinterpret_cast<uint16_t*>(&header[12]),
              h = *reinterpret_cast<uint16_t*>(&header[14]);
     ColorImage* image = new ColorImage(w, h);
@@ -337,7 +342,6 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     if (header[2]==2 && header[1]==0)
     {
         if (header[17]==0)
-        {
             for (uint16_t y=h; y>0; y--)
                 for (uint16_t x=0; x<w; x++)
                 {
@@ -345,9 +349,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
                     image->pixel(x,y).g = is.get();
                     image->pixel(x,y).r = is.get();
                 }
-        }
         else if (header[17]==32)
-        {   
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
@@ -355,6 +357,11 @@ ColorImage* ColorImage::readTGA(std::istream& is)
                     image->pixel(x,y).g = is.get();
                     image->pixel(x,y).r = is.get();
                 }
+        else
+        {
+            delete [] header;
+            delete image;
+            throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car la valeur du dernier octet du header TGA n'est ni 0 ni 32.");
         }
     }
     else if (header[2]==1 && header[1]==1)
@@ -368,20 +375,19 @@ ColorImage* ColorImage::readTGA(std::istream& is)
             palette[i].r = is.get();
         }
         if (header[17]==0)
-        {
             for (uint16_t y=h; y>0; y--)
                 for (uint16_t x=0; x<w; x++)
-                {
-                    image->pixel(x,y) = palette[uint16_t(is.get())];
-                }
-        }
-        if (header[17]==32)
-        {   
+                    image->pixel(x,y) = palette[is.get()];
+        else if (header[17]==32)
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
-                {
-                    image->pixel(x,y) = palette[uint16_t(is.get())];
-                }
+                    image->pixel(x,y) = palette[is.get()];
+        else
+        {
+            delete [] header;
+            delete [] palette;
+            delete image;
+            throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car la valeur du dernier octet du header TGA n'est ni 0 ni 32.");
         }
         delete [] palette;
     }
@@ -389,10 +395,9 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     {
         delete [] header;
         delete image;
-        throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car elle n'est pas au format TGA RGB non-compressé ni au format TGA avec palette 24bits non-compressé.");
+        throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car elle n'est ni au format TGA RGB non-compressé (header[2]==2 && header[1]==0) ni au format TGA avec palette 24bits non-compressé (header[2]==1 && header[1]==1).");
     }
     delete [] header;
-    std::cout << "ok" << std::endl;
     return image;
 }
 
@@ -496,10 +501,8 @@ void ColorImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, Color 
 
     for (uint16_t i=x; i<w+x; i++)
         for (uint16_t j=y; j<h+y; j++)
-        {
             if (i==x || j==y || i==w+x-1 || j==h+y-1)
                 pixel(i,j) = color;
-        }
 }
 
 /// @brief Dessine un rectangle dans l'instance courante de ColorImage.

@@ -3,6 +3,9 @@
 const char * const identifier = "hilaire_r";
 const char * const informations = "";
 
+
+// Fonctions / templates générales.
+
 /// @brief Ignore une ligne en lecture d'un fichier.
 /// @param is Flux d'entrée contenant la ligne à ignorer.
 void skip_line(std::istream& is)
@@ -39,12 +42,17 @@ template<typename T> void swap_bytes(T& bytes)
     delete b;
 }
 
+
+// Fonctions membres / friends de la classe GrayImage.
+
 /// @brief Constructeur de GrayImage à partir de ses paramètres width et height.
 /// @param w Largeur en pixels de l'image GrayImage à créer.
 /// @param h Hauteur en pixels de l'image GrayImage à créer.
-GrayImage::GrayImage(uint16_t w, uint16_t h)
+GrayImage::GrayImage(const uint16_t& w, const uint16_t& h)
     : width(w), height(h), array(nullptr)
-{array=new uint8_t[width*height];}
+{
+    array=new uint8_t[width*height];
+}
 
 /// @brief Constructeur de copie de GrayImage.
 /// @param o GrayImage d'origine dont on va construire la copie.
@@ -58,17 +66,19 @@ GrayImage::GrayImage(const GrayImage& o)
 
 /// @brief Destructeur de GrayImage.
 GrayImage::~GrayImage()
-{delete [] array;}
+{
+    delete [] array;
+}
 
 /// @brief Lit une image au format PGM.
 /// @param is Flux d'entrée contenant l'image à transformer en GrayImage.
 /// @return Pointeur sur une GrayImage qui aura été créée à partir de is.
 GrayImage* GrayImage::readPGM(std::istream& is)
 {   
-    char c=is.get();
-    char c2=is.get();
-    if (c!='P' || c2!='5')
-        throw std::runtime_error("Erreur: le fichier n'est pas au format PGM.");
+    char c = is.get();
+    char c2 = is.get();
+    if (c!='P' || (c2!='5' && c2!='2'))
+        throw std::runtime_error("Erreur: dans GrayImage::readPGM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas aux formats PGM pris en charge (magic numbers \'P5\' ou \'P2\').");
 
     skip_line(is);
     skip_comments(is);
@@ -82,12 +92,16 @@ GrayImage* GrayImage::readPGM(std::istream& is)
     uint32_t p_value;
     is >> p_value;
     if (p_value>255)
-        throw std::runtime_error("Erreur: valeur maximale d'un pixel incorrecte (maximum 255).");
+        throw std::runtime_error("Erreur: dans GrayImage::readPGM(std::istream& is) impossible de lire l'image fournie dans is car la valeur maximale d'un pixel est supérieure au maximum autorisé (maximum=255).");
     
     is.get();
-    GrayImage *image=new GrayImage(w, h);
     
-    is.read((char*)image->array, w*h);
+    GrayImage *image = new GrayImage(w, h);
+    
+    if (c2=='5')
+        is.read((char*)image->array, w*h);
+    else if (c2=='2')
+        std::cout << "à terminer lecture PGM P2" << std::endl;
 
     return image;
 }
@@ -100,7 +114,7 @@ GrayImage* GrayImage::readTGA(std::istream& is)
     char *header = new char[18];
     is.read(header, 18);
     if (*reinterpret_cast<uint16_t*>(&header[2])!=3)
-        throw std::runtime_error("Erreur: ne sont acceptés que les TGA en niveaux de gris.");
+        throw std::runtime_error("Erreur: dans GrayImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car il ne s'agit pas d'un TGA en niveaux de gris.");
     uint16_t w = *reinterpret_cast<uint16_t*>(&header[12]),
              h = *reinterpret_cast<uint16_t*>(&header[14]);
     is.seekg(*reinterpret_cast<uint16_t*>(&header[0])+18);
@@ -144,10 +158,8 @@ void GrayImage::writeTGA(std::ostream& os) const
 
 /// @brief Efface l'image en mettant tous ses pixels à la valeur 'color'.
 /// @param color Couleur (en niveaux de gris) qui va remplacer tous les pixels de l'instance courante de GrayImage.
-void GrayImage::clear(uint8_t color)
+void GrayImage::clear(const uint8_t& color)
 {
-    if (color>255)
-        throw std::runtime_error("Erreur: valeur maximale d'un pixel incorrecte (maximum 255).");
     for (uint16_t x=0; x<width; x++)
         for (uint16_t y=0; y<height; y++)
             array[y*width+x] = color;
@@ -158,22 +170,18 @@ void GrayImage::clear(uint8_t color)
 /// @param y Coordonnée sur l'axe des ordonnées du coin supérieur gauche du cadre.
 /// @param w Largeur du cadre en pixels.
 /// @param h Hauteur du cadre en pixels.
-/// @param color Couleur (en niveaux de gris) du cadre.
-void GrayImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, uint8_t color)
+/// @param color Couleur (en niveaux de gris) du cadre à tracer.
+void GrayImage::rectangle(const uint16_t& x, const uint16_t& y, const uint16_t& w, const uint16_t& h, const uint8_t& color)
 {
     if (x>width || y>height)
-        throw std::runtime_error("Erreur: l'ancrage du rectangle est en dehors de l'image.");
+        throw std::runtime_error("Erreur: dans GrayImage::rectangle(...) impossible de dessiner le cadre car son ancrage de coordonnées (x, y) se situe en dehors de l'image.");
     if (w+x-1>width || h+y-1>height)
-        throw std::runtime_error("Erreur: la taille du rectangle le fait sortir de l'image.");
-    if (color>255)
-        throw std::runtime_error("Erreur: valeur maximale d'un pixel incorrecte (maximum 255).");
+        throw std::runtime_error("Erreur: dans GrayImage::rectangle(...) impossible de dessiner le cadre car il dépasse / sort de l'image.");
 
     for (uint16_t i=x; i<w+x; i++)
         for (uint16_t j=y; j<h+y; j++)
-        {
             if (i==x || j==y || i==w+x-1 || j==h+y-1)
                 pixel(i,j) = color;
-        }
 }
 
 /// @brief Dessine un rectangle dans l'instance courante de GrayImage.
@@ -181,15 +189,13 @@ void GrayImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, uint8_t
 /// @param y Coordonnée sur l'axe des ordonnées du coin supérieur gauche du rectangle.
 /// @param w Largeur du rectangle en pixels.
 /// @param h Hauteur du rectangle en pixels.
-/// @param color Couleur (en niveaux de gris) du rectangle.
-void GrayImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t color)
+/// @param color Couleur (en niveaux de gris) du rectangle à tracer.
+void GrayImage::fillRectangle(const uint16_t& x, const uint16_t& y, const uint16_t& w, const uint16_t& h, const uint8_t& color)
 {
     if (x>width || y>height)
-        throw std::runtime_error("Erreur: l'ancrage du rectangle est en dehors de l'image.");
+        throw std::runtime_error("Erreur: dans GrayImage::fillRectangle(...) impossible de dessiner le rectangle car son ancrage de coordonnées (x, y) se situe en dehors de l'image.");
     if (w+x-1>width || h+y-1>height)
-        throw std::runtime_error("Erreur: la taille du rectangle le fait sortir de l'image.");
-    if (color>255)
-        throw std::runtime_error("Erreur: valeur maximale d'un pixel incorrecte (maximum 255).");
+        throw std::runtime_error("Erreur: dans GrayImage::fillRectangle(...) impossible de dessiner le rectangle car il dépasse / sort de l'image.");
 
     for (uint16_t i=x; i<w+x; i++)
         for (uint16_t j=y; j<h+y; j++)
@@ -200,7 +206,7 @@ void GrayImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ui
 /// @param w La largeur à laquelle sera rééchantillonnée l'instance courante de GrayImage.
 /// @param h La hauteur à laquelle sera rééchantillonnée l'instance courante de GrayImage.
 /// @return Pointeur sur une GrayImage qui représente l'instance courante de GrayImage rééchantillonnée.
-GrayImage* GrayImage::simpleScale(uint16_t w, uint16_t h) const
+GrayImage* GrayImage::simpleScale(const uint16_t& w, const uint16_t& h) const
 {
     GrayImage* ret = new GrayImage(w, h);
     for (uint16_t xPrim=0; xPrim<w; xPrim++)
@@ -219,7 +225,7 @@ GrayImage* GrayImage::simpleScale(uint16_t w, uint16_t h) const
 /// @param w La largeur à laquelle sera rééchantillonnée l'instance courante de GrayImage.
 /// @param h La hauteur à laquelle sera rééchantillonnée l'instance courante de GrayImage.
 /// @return Pointeur sur une GrayImage qui représente l'instance courante de GrayImage rééchantillonnée.
-GrayImage* GrayImage::bilinearScale(uint16_t w, uint16_t h) const
+GrayImage* GrayImage::bilinearScale(const uint16_t& w, const uint16_t& h) const
 {
     GrayImage* ret = new GrayImage(w, h);
     for (uint16_t xPrim=0; xPrim<w; xPrim++)
@@ -243,12 +249,13 @@ GrayImage* GrayImage::bilinearScale(uint16_t w, uint16_t h) const
 }
 
 
+// Fonctions membres / friends de la classe Color.
 
 /// @brief Opérateur de multiplication de la classe Color.
 /// @param alpha Valeur décimale par laquelle multiplier une Color en RGB.
 /// @param color Color en RGB qui va être multipliée par une valeur décimale.
 /// @return Objet Color dont la valeur est 'alpha*color'.
-Color operator*(double alpha, const Color& color)
+Color operator*(const double& alpha, const Color& color)
 {
     return Color(color.r*alpha, color.g*alpha, color.b*alpha);
 }
@@ -263,13 +270,16 @@ Color operator+(const Color& c1, const Color& c2)
 }
 
 
+// Fonctions membres / friends de la classe ColorImage.
 
 /// @brief Constructeur de ColorImage à partir d'une largeur et une hauteur.
 /// @param w Largeur de l'image ColorImage à construire.
 /// @param h Hauteur de l'image ColorImage à construire.
-ColorImage::ColorImage(uint16_t w, uint16_t h)
+ColorImage::ColorImage(const uint16_t& w, const uint16_t& h)
     : width(w), height(h), array(nullptr)
-{array=new Color[width*height];}
+{
+    array=new Color[width*height];
+}
 
 /// @brief Constructeur de copie de ColorImage.
 /// @param o ColorImage d'origine dont on va construire la copie.
@@ -283,7 +293,9 @@ ColorImage::ColorImage(const ColorImage& o)
 
 /// @brief Destructeur de ColorImage.
 ColorImage::~ColorImage()
-{delete [] array;}
+{
+    delete [] array;
+}
 
 /// @brief Lit une image au format PPM.
 /// @param is Flux d'entrée contenant l'image à transformer en ColorImage.
@@ -293,7 +305,7 @@ ColorImage* ColorImage::readPPM(std::istream& is)
     char c=is.get();
     char c2=is.get();
     if (c!='P' || c2!='6')
-        throw std::runtime_error("Erreur: le fichier n'est pas au format PPM.");
+        throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas au format PPM (magic number \'P6\').");
 
     skip_line(is);
     skip_comments(is);
@@ -307,7 +319,7 @@ ColorImage* ColorImage::readPPM(std::istream& is)
     uint32_t p_value;
     is >> p_value;
     if (p_value>255)
-        throw std::runtime_error("Erreur: valeur maximale d'un pixel incorrecte (maximum 255).");
+        throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car la valeur maximale des champs de couleurs (R,G,B) d'un pixel est supérieure au maximum autorisé (maximum=255).");
     
     is.get();
     ColorImage *image=new ColorImage(w, h);
@@ -328,59 +340,94 @@ ColorImage* ColorImage::readTGA(std::istream& is)
              h = *reinterpret_cast<uint16_t*>(&header[14]);
     ColorImage* image = new ColorImage(w, h);
 
-    is.seekg(*reinterpret_cast<uint16_t*>(&header[0])+18);
+    is.seekg(header[0]+18);
         
-    if (*reinterpret_cast<uint16_t*>(&header[2])==2)
+    if (header[2]==2 && header[1]==0)
     {
-        if (*reinterpret_cast<uint8_t*>(&header[17])==0)
+        if (header[17]==0)
         {
-            for (uint16_t y=h-1; y>=0; y--)
+            for (uint16_t y=h-1; y>0; y--)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    image->pixel(x,y).b = is.get();
-                    image->pixel(x,y).g = is.get();
-                    image->pixel(x,y).r = is.get();
+                    image->pixel(x, y).b = is.get();
+                    image->pixel(x, y).g = is.get();
+                    image->pixel(x, y).r = is.get();
                 }
+            for (uint16_t x=0; x<w; x++)
+            {
+                image->pixel(x, 0).b = is.get();
+                image->pixel(x, 0).g = is.get();
+                image->pixel(x, 0).r = is.get();
+            }
         }
-        else if (*reinterpret_cast<uint8_t*>(&header[17])==32)
-        {   
+        else if (header[17]==32)
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    image->pixel(x,y).b = is.get();
-                    image->pixel(x,y).g = is.get();
-                    image->pixel(x,y).r = is.get();
+                    image->pixel(x, y).b = is.get();
+                    image->pixel(x, y).g = is.get();
+                    image->pixel(x, y).r = is.get();
                 }
+        else
+        {
+            delete [] header;
+            delete image;
+            throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car la valeur du dernier octet du header TGA n'est ni 0 ni 32.");
         }
     }
-    // else if (*reinterpret_cast<uint16_t*>(&header[2])==1)
-    // {
-    //     if (*reinterpret_cast<uint8_t*>(&header[17])==0)
-    //     {
-    //         for (uint16_t y=h-1; y>=0; y--)
-    //             for (uint16_t x=0; x<w; x++)
-    //             {
-    //                 image->pixel(x,y).b = is.get();
-    //                 image->pixel(x,y).g = is.get();
-    //                 image->pixel(x,y).r = is.get();
-    //             }
-    //     }
-    //     else if (*reinterpret_cast<uint8_t*>(&header[17])==32)
-    //     {   
-    //         for (uint16_t y=0; y<h; y++)
-    //             for (uint16_t x=0; x<w; x++)
-    //             {
-    //                 image->pixel(x,y).b = is.get() & 255;
-    //                 image->pixel(x,y).g = is.get() & 255;
-    //                 image->pixel(x,y).r = is.get() & 255;
-    //             }
-    //     }
-    // }
+    else if (header[2]==1 && header[1]==1)
+    {
+        uint16_t size = *reinterpret_cast<uint16_t*>(&header[5]);
+        Color *palette = new Color[size];
+        for (uint16_t i=0; i<size; i++)
+        {
+            palette[i].b = is.get();
+            palette[i].g = is.get();
+            palette[i].r = is.get();
+        }
+
+        if (header[17]==0)
+        {
+            for (uint16_t y=h-1; y>0; y--)
+                for (uint16_t x=0; x<w; x++)
+                {
+                    uint16_t i = is.get();
+                    image->pixel(x, y).r = palette[i].r;
+                    image->pixel(x, y).g = palette[i].g;
+                    image->pixel(x, y).b = palette[i].b;
+                }
+            for (uint16_t x=0; x<w; x++)
+            {
+                uint16_t i = is.get();
+                image->pixel(x, 0).r = palette[i].r;
+                image->pixel(x, 0).g = palette[i].g;
+                image->pixel(x, 0).b = palette[i].b;
+            }
+        }
+
+        else if (header[17]==32)
+            for (uint16_t y=0; y<h; y++)
+                for (uint16_t x=0; x<w; x++)
+                {
+                    uint16_t i = is.get();
+                    image->pixel(x, y).r = palette[i].r;
+                    image->pixel(x, y).g = palette[i].g;
+                    image->pixel(x, y).b = palette[i].b;
+                }
+        else
+        {
+            delete [] header;
+            delete [] palette;
+            delete image;
+            throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car la valeur du dernier octet du header TGA n'est ni 0 ni 32.");
+        }
+        delete [] palette;
+    }
     else
     {
         delete [] header;
         delete image;
-        throw std::runtime_error("Erreur: ne sont acceptés en lecture dans ColorImage que les TGA aux formats RGB ou color mapped images non-compressés.");
+        throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car elle n'est ni au format TGA RGB non-compressé (header[2]==2 && header[1]==0) ni au format TGA avec palette 24bits non-compressé (header[2]==1 && header[1]==1).");
     }
     delete [] header;
     return image;
@@ -400,7 +447,7 @@ void ColorImage::writePPM(std::ostream& os) const
 /// @brief Ecrit une image au format TGA à partir d'un objet ColorImage.
 /// @param os Flux sortant contenant le fichier TGA où on va écrire l'instance courante de ColorImage.
 /// @param rle Bouléen indiquant si l'image à écrire doit être compressée (true par défaut) ou non-compressée (false).
-void ColorImage::writeTGA(std::ostream& os, bool rle) const
+void ColorImage::writeTGA(std::ostream& os, const bool& rle) const
 {
     if (rle)
     {
@@ -465,11 +512,10 @@ void ColorImage::writeTGA(std::ostream& os, bool rle) const
 
 /// @brief Efface l'image en mettant tous ses pixels à la valeur 'color'.
 /// @param color Color réprésentant la couleur en RGB d'un pixel.
-void ColorImage::clear(Color color)
+void ColorImage::clear(const Color& color)
 {
-    for (uint16_t x=0; x<width; x++)
-        for (uint16_t y=0; y<height; y++)
-            array[y*width+x] = color;
+    for (int i=0; i<width*height; i++)
+        array[i] = color;
 }
 
 /// @brief Dessine un cadre rectangulaire d'un pixel d'épaisseur dans l'instance courante de ColorImage.
@@ -477,20 +523,18 @@ void ColorImage::clear(Color color)
 /// @param y Coordonnée sur l'axe des ordonnées du coin supérieur gauche du cadre.
 /// @param w Largeur du cadre en pixels.
 /// @param h Hauteur du cadre en pixels.
-/// @param color Couleur Color (en RGB) du cadre.
-void ColorImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, Color color)
+/// @param color Couleur de la classe Color (en RGB) du cadre à tracer.
+void ColorImage::rectangle(const uint16_t& x, const uint16_t& y, const uint16_t& w, const uint16_t& h, const Color& color)
 {
     if (x>width || y>height)
-        throw std::runtime_error("Erreur: l'ancrage du rectangle est en dehors de l'image.");
+        throw std::runtime_error("Erreur: dans ColorImage::rectangle(...) impossible de dessiner le cadre car son ancrage de coordonnées (x, y) se situe en dehors de l'image.");
     if (w+x-1>width || h+y-1>height)
-        throw std::runtime_error("Erreur: la taille du rectangle le fait sortir de l'image.");
+        throw std::runtime_error("Erreur: dans ColorImage::rectangle(...) impossible de dessiner le cadre car il dépasse / sort de l'image.");
 
     for (uint16_t i=x; i<w+x; i++)
         for (uint16_t j=y; j<h+y; j++)
-        {
             if (i==x || j==y || i==w+x-1 || j==h+y-1)
                 pixel(i,j) = color;
-        }
 }
 
 /// @brief Dessine un rectangle dans l'instance courante de ColorImage.
@@ -498,13 +542,13 @@ void ColorImage::rectangle(uint16_t x, uint16_t y, int16_t w, uint16_t h, Color 
 /// @param y Coordonnée sur l'axe des ordonnées du coin supérieur gauche du rectangle.
 /// @param w Largeur du rectangle en pixels.
 /// @param h Hauteur du rectangle en pixels.
-/// @param color Couleur Color (en RGB) du rectangle. 
-void ColorImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, Color color)
+/// @param color Couleur de la classe Color (en RGB) du rectangle à tracer. 
+void ColorImage::fillRectangle(const uint16_t& x, const uint16_t& y, const uint16_t& w, const uint16_t& h, const Color& color)
 {
     if (x>width || y>height)
-        throw std::runtime_error("Erreur: l'ancrage du rectangle est en dehors de l'image.");
+        throw std::runtime_error("Erreur: dans ColorImage::fillRectangle(...) impossible de dessiner le rectangle car son ancrage de coordonnées (x, y) se situe en dehors de l'image.");
     if (w+x-1>width || h+y-1>height)
-        throw std::runtime_error("Erreur: la taille du rectangle le fait sortir de l'image.");
+        throw std::runtime_error("Erreur: dans ColorImage::fillRectangle(...) impossible de dessiner le rectangle car il dépasse / sort de l'image.");
 
     for (uint16_t i=x; i<w+x; i++)
         for (uint16_t j=y; j<h+y; j++)
@@ -515,7 +559,7 @@ void ColorImage::fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, C
 /// @param w La largeur à laquelle sera rééchantillonnée l'instance courante de ColorImage.
 /// @param h La hauteur à laquelle sera rééchantillonnée l'instance courante de ColorImage.
 /// @return Pointeur sur une ColorImage qui représente l'instance courante de ColorImage rééchantillonnée.
-ColorImage* ColorImage::simpleScale(uint16_t w, uint16_t h) const
+ColorImage* ColorImage::simpleScale(const uint16_t& w, const uint16_t& h) const
 {
     ColorImage* ret = new ColorImage(w, h);
     for (uint16_t xPrim=0; xPrim<w; xPrim++)
@@ -534,7 +578,7 @@ ColorImage* ColorImage::simpleScale(uint16_t w, uint16_t h) const
 /// @param w La largeur à laquelle sera rééchantillonnée l'instance courante de ColorImage.
 /// @param h La hauteur à laquelle sera rééchantillonnée l'instance courante de ColorImage.
 /// @return Pointeur sur une ColorImage qui représente l'instance courante de ColorImage rééchantillonnée.
-ColorImage* ColorImage::bilinearScale(uint16_t w, uint16_t h) const
+ColorImage* ColorImage::bilinearScale(const uint16_t& w, const uint16_t& h) const
 {
     ColorImage* ret = new ColorImage(w, h);
     for (uint16_t xPrim=0; xPrim<w; xPrim++)
@@ -555,4 +599,94 @@ ColorImage* ColorImage::bilinearScale(uint16_t w, uint16_t h) const
             ret->pixel(xPrim, yPrim) = (1-mu)*((1-lambda)*p1+lambda*p2)+mu*((1-lambda)*p3+lambda*p4);
         }
     return ret;
+}
+
+/// @brief Trace une ligne en suivant l'algorithme de Bresenham dans l'instance courante de ColorImage.
+/// @param x1 Coordonnée sur l'axe des abcisses du point d'origine de la ligne.
+/// @param y1 Coordonnée sur l'axe des ordonnées du point d'origine de la ligne.
+/// @param x2 Coordonnée sur l'axe des abcisses du point d'arrivée de la ligne.
+/// @param y2 Coordonnée sur l'axe des ordonnées du point d'arrivée de la lignee.
+/// @param pixel_value Couleur de la classe Color (en RGB) de la ligne à tracer.
+void ColorImage::line(const uint16_t& x1, const uint16_t& y1, const uint16_t& x2, const uint16_t& y2, const Color& pixel_value)
+{
+    pixel(x2, y2) = pixel_value;
+
+    const uint16_t longX = abs(x2-x1),
+                   longY = abs(y2-y1);
+
+    const short incX = x1<x2?1:-1,
+                incY = y1<y2?1:-1;
+
+    uint16_t x = x1,
+             y = y1;
+
+    if(longY<longX)
+    {
+        const int16_t c1 = 2*(longY-longX),
+                      c2 = 2*longY;
+
+        int16_t crit1 = 2*longY,
+                crit2 = 2*(longY-longX);
+
+        while(x!=x2)
+        {
+            pixel(x, y) = pixel_value;
+            if((x<x2 && y<y2)||(x>x2 && y>y2))
+            {
+                if(crit1>=0)
+                {
+                    y += incY;
+                    crit1 += c1;
+                }
+                else
+                    crit1 += c2;
+            }
+            else
+            {
+                if(crit2>=0)
+                {
+                    y += incY;
+                    crit2 += c1;
+                }
+                else
+                    crit2 += c2;
+            }
+            x += incX;
+        }
+    }
+    else
+    {
+        const int16_t c1 = 2*(longX-longY),
+                      c2 = 2*longX;
+
+        int16_t crit1 = 2*longX,
+                crit2 = 2*(longX-longY);
+
+        while(y!=y2)
+        {
+            pixel(x, y) = pixel_value;
+
+            if((x<x2 && y<y2)||(x>x2 && y>y2))
+            {
+                if(crit1>=0)
+                {
+                    x += incX;
+                    crit1 += c1;
+                }
+                else
+                    crit1 += c2;
+            }
+            else
+            {
+                if(crit2>=0)
+                {
+                    x += incX;
+                    crit2 += c1;
+                }
+                else
+                    crit2 += c2;
+            }
+            y += incY;
+        }
+    }
 }

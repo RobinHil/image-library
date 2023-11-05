@@ -75,10 +75,10 @@ GrayImage::~GrayImage()
 /// @return Pointeur sur une GrayImage qui aura été créée à partir de is.
 GrayImage* GrayImage::readPGM(std::istream& is)
 {   
-    char c=is.get();
-    char c2=is.get();
-    if (c!='P' || c2!='5')
-        throw std::runtime_error("Erreur: dans GrayImage::readPGM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas au format PGM (magic number \'P5\').");
+    char c = is.get();
+    char c2 = is.get();
+    if (c!='P' || (c2!='5' && c2!='2'))
+        throw std::runtime_error("Erreur: dans GrayImage::readPGM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas aux formats PGM pris en charge (magic numbers \'P5\' ou \'P2\').");
 
     skip_line(is);
     skip_comments(is);
@@ -95,9 +95,13 @@ GrayImage* GrayImage::readPGM(std::istream& is)
         throw std::runtime_error("Erreur: dans GrayImage::readPGM(std::istream& is) impossible de lire l'image fournie dans is car la valeur maximale d'un pixel est supérieure au maximum autorisé (maximum=255).");
     
     is.get();
-    GrayImage *image=new GrayImage(w, h);
     
-    is.read((char*)image->array, w*h);
+    GrayImage *image = new GrayImage(w, h);
+    
+    if (c2=='5')
+        is.read((char*)image->array, w*h);
+    else if (c2=='2')
+        std::cout << "à terminer lecture PGM P2" << std::endl;
 
     return image;
 }

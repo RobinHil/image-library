@@ -123,7 +123,15 @@ int main()
         delete img;
     }
 
+    {
+        std::ifstream isImg("data/GrayImage/Rafale30000.pgm", std::ios::binary);
+        GrayImage *img = GrayImage::readPGM(isImg);
 
+        std::ofstream osImg("data/tests/GrayImage/11-read_p2_write_p5.pgm", std::ios::binary);
+        img->writePGM(osImg);
+
+        delete img;
+    }
 
 
     // Tests de la classe ColorImage

@@ -1,5 +1,3 @@
-#include<iostream>
-
 #include"Image.hpp"
 
 const char * const identifier = "hilaire_r";
@@ -333,6 +331,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
 {
     char *header = new char[18];
     is.read(header, 18);
+
     uint16_t w = *reinterpret_cast<uint16_t*>(&header[12]),
              h = *reinterpret_cast<uint16_t*>(&header[14]);
     ColorImage* image = new ColorImage(w, h);
@@ -342,20 +341,28 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     if (header[2]==2 && header[1]==0)
     {
         if (header[17]==0)
-            for (uint16_t y=h; y>0; y--)
+        {
+            for (uint16_t y=h-1; y>0; y--)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    image->pixel(x,y).b = is.get();
-                    image->pixel(x,y).g = is.get();
-                    image->pixel(x,y).r = is.get();
+                    image->pixel(x, y).b = is.get();
+                    image->pixel(x, y).g = is.get();
+                    image->pixel(x, y).r = is.get();
                 }
+            for (uint16_t x=0; x<w; x++)
+            {
+                image->pixel(x, 0).b = is.get();
+                image->pixel(x, 0).g = is.get();
+                image->pixel(x, 0).r = is.get();
+            }
+        }
         else if (header[17]==32)
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    image->pixel(x,y).b = is.get();
-                    image->pixel(x,y).g = is.get();
-                    image->pixel(x,y).r = is.get();
+                    image->pixel(x, y).b = is.get();
+                    image->pixel(x, y).g = is.get();
+                    image->pixel(x, y).r = is.get();
                 }
         else
         {
@@ -366,7 +373,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     }
     else if (header[2]==1 && header[1]==1)
     {
-        uint16_t size = header[5]+(header[6]<<8);
+        uint16_t size = *reinterpret_cast<uint16_t*>(&header[5]);
         Color *palette = new Color[size];
         for (uint16_t i=0; i<size; i++)
         {
@@ -374,14 +381,35 @@ ColorImage* ColorImage::readTGA(std::istream& is)
             palette[i].g = is.get();
             palette[i].r = is.get();
         }
+
         if (header[17]==0)
-            for (uint16_t y=h; y>0; y--)
+        {
+            for (uint16_t y=h-1; y>0; y--)
                 for (uint16_t x=0; x<w; x++)
-                    image->pixel(x,y) = palette[is.get()];
+                {
+                    uint16_t i = is.get();
+                    image->pixel(x, y).r = palette[i].r;
+                    image->pixel(x, y).g = palette[i].g;
+                    image->pixel(x, y).b = palette[i].b;
+                }
+            for (uint16_t x=0; x<w; x++)
+            {
+                uint16_t i = is.get();
+                image->pixel(x, 0).r = palette[i].r;
+                image->pixel(x, 0).g = palette[i].g;
+                image->pixel(x, 0).b = palette[i].b;
+            }
+        }
+
         else if (header[17]==32)
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
-                    image->pixel(x,y) = palette[is.get()];
+                {
+                    uint16_t i = is.get();
+                    image->pixel(x, y).r = palette[i].r;
+                    image->pixel(x, y).g = palette[i].g;
+                    image->pixel(x, y).b = palette[i].b;
+                }
         else
         {
             delete [] header;

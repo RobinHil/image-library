@@ -41,10 +41,12 @@ public :
 
     static GrayImage* readPGM(std::istream&);
     static GrayImage* readTGA(std::istream&);
+
     void writePGM(std::ostream&) const;
     void writeTGA(std::ostream&) const;
 
     void clear(const uint8_t& =0);
+    
     void rectangle(const uint16_t&, const uint16_t&, const uint16_t&, const uint16_t&, const uint8_t& =0);
     void fillRectangle(const uint16_t&, const uint16_t&, const uint16_t&, const uint16_t&, const uint8_t& =0);
 
@@ -56,8 +58,10 @@ class Color
 {
 public :
     uint8_t r, g, b;
+
     inline Color (const uint8_t& _r=0, const uint8_t& _g=0, const uint8_t& _b=0)
     : r(_r), g(_g), b(_b){}
+
     friend Color operator*(const double&, const Color&);
     friend Color operator+(const Color&, const Color&);
 };

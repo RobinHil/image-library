@@ -368,21 +368,13 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     if (header[2]==2 && header[1]==0)
     {
         if (header[17]==0)
-        {
-            for (uint16_t y=h-1; y>0; y--)
+            for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    image->pixel(x, y).b = is.get();
-                    image->pixel(x, y).g = is.get();
-                    image->pixel(x, y).r = is.get();
+                    image->pixel(x, h-y-1).b = is.get();
+                    image->pixel(x, h-y-1).g = is.get();
+                    image->pixel(x, h-y-1).r = is.get();
                 }
-            for (uint16_t x=0; x<w; x++)
-            {
-                image->pixel(x, 0).b = is.get();
-                image->pixel(x, 0).g = is.get();
-                image->pixel(x, 0).r = is.get();
-            }
-        }
         else if (header[17]==32)
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
@@ -409,29 +401,17 @@ ColorImage* ColorImage::readTGA(std::istream& is)
             palette[i].r = is.get();
         }
 
+        uint16_t i = 0;
         if (header[17]==0)
-        {
-            uint16_t i = 0;
-            for (uint16_t y=h-1; y>0; y--)
+            for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
                     i = is.get();
-                    image->pixel(x, y).r = palette[i].r;
-                    image->pixel(x, y).g = palette[i].g;
-                    image->pixel(x, y).b = palette[i].b;
+                    image->pixel(x, h-y-1).r = palette[i].r;
+                    image->pixel(x, h-y-1).g = palette[i].g;
+                    image->pixel(x, h-y-1).b = palette[i].b;
                 }
-            for (uint16_t x=0; x<w; x++)
-            {
-                i = is.get();
-                image->pixel(x, 0).r = palette[i].r;
-                image->pixel(x, 0).g = palette[i].g;
-                image->pixel(x, 0).b = palette[i].b;
-            }
-        }
-
         else if (header[17]==32)
-        {
-            uint16_t i = 0;
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
@@ -440,7 +420,6 @@ ColorImage* ColorImage::readTGA(std::istream& is)
                     image->pixel(x, y).g = palette[i].g;
                     image->pixel(x, y).b = palette[i].b;
                 }
-        }
         else
         {
             delete [] header;
@@ -448,6 +427,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
             delete image;
             throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car la valeur du dernier octet du header TGA n'est ni 0 ni 32.");
         }
+
         delete [] palette;
     }
     else
@@ -456,7 +436,9 @@ ColorImage* ColorImage::readTGA(std::istream& is)
         delete image;
         throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car elle n'est ni au format TGA RGB non-compressé (header[2]==2 && header[1]==0) ni au format TGA avec palette 24bits non-compressé (header[2]==1 && header[1]==1).");
     }
+
     delete [] header;
+    
     return image;
 }
 

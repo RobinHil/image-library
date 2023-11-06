@@ -3,7 +3,7 @@ TP_GrayImage/dataGrayImage
 TP_ColorImage/data
 *.vscode
 *main
-*doc
+*documentation
 
 # Prerequisites
 *.d

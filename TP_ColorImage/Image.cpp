@@ -20,7 +20,7 @@ void skip_comments(std::istream& is)
 {
     char c;
     do {
-        c=is.get();
+        c = is.get();
         if (c=='#')
             skip_line(is);
     } while (c=='#');
@@ -51,7 +51,7 @@ template<typename T> void swap_bytes(T& bytes)
 GrayImage::GrayImage(const uint16_t& w, const uint16_t& h)
     : width(w), height(h), array(nullptr)
 {
-    array=new uint8_t[width*height];
+    array = new uint8_t[width*height];
 }
 
 /// @brief Constructeur de copie de GrayImage.
@@ -59,9 +59,9 @@ GrayImage::GrayImage(const uint16_t& w, const uint16_t& h)
 GrayImage::GrayImage(const GrayImage& o)
     : width(o.width), height(o.height), array(nullptr)
 {
-    array=new uint8_t[o.width*o.height];
+    array = new uint8_t[o.width*o.height];
     for (size_t t=0; t<size_t(width*height); t++)
-        array[t]=o.array[t];
+        array[t] = o.array[t];
 }
 
 /// @brief Destructeur de GrayImage.
@@ -119,11 +119,15 @@ GrayImage* GrayImage::readTGA(std::istream& is)
 {
     char *header = new char[18];
     is.read(header, 18);
-    if (*reinterpret_cast<uint16_t*>(&header[2])!=3)
-        throw std::runtime_error("Erreur: dans GrayImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car il ne s'agit pas d'un TGA en niveaux de gris.");
+
+    if (header[2]!=3)
+        throw std::runtime_error("Erreur: dans GrayImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car il ne s'agit pas d'un TGA en niveaux de gris non-compressé.");
+
     uint16_t w = *reinterpret_cast<uint16_t*>(&header[12]),
              h = *reinterpret_cast<uint16_t*>(&header[14]);
+
     is.seekg(*reinterpret_cast<uint16_t*>(&header[0])+18);
+
     delete [] header;
 
     GrayImage* image = new GrayImage(w, h);
@@ -284,7 +288,7 @@ Color operator+(const Color& c1, const Color& c2)
 ColorImage::ColorImage(const uint16_t& w, const uint16_t& h)
     : width(w), height(h), array(nullptr)
 {
-    array=new Color[width*height];
+    array = new Color[width*height];
 }
 
 /// @brief Constructeur de copie de ColorImage.
@@ -294,7 +298,7 @@ ColorImage::ColorImage(const ColorImage& o)
 {
     array=new Color[o.width*o.height];
     for (size_t t=0; t<size_t(width*height); t++)
-        array[t]=o.array[t];
+        array[t] = o.array[t];
 }
 
 /// @brief Destructeur de ColorImage.
@@ -308,8 +312,8 @@ ColorImage::~ColorImage()
 /// @return Pointeur sur une ColorImage qui aura été créée à partir de is.
 ColorImage* ColorImage::readPPM(std::istream& is)
 {
-    char c=is.get();
-    char c2=is.get();
+    char c = is.get();
+    char c2 = is.get();
     if (c!='P' || (c2!='6' && c2!='3'))
         throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas aux formats PPM supportés (magic number \'P6\' ou \'P3\').");
 
@@ -328,7 +332,7 @@ ColorImage* ColorImage::readPPM(std::istream& is)
         throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car la valeur maximale des champs de couleurs (R,G,B) d'un pixel est supérieure au maximum autorisé (maximum=255).");
     
     is.get();
-    ColorImage *image=new ColorImage(w, h);
+    ColorImage *image = new ColorImage(w, h);
 
     if (c2=='6')
         is.read((char*)image->array, w*h*3);
@@ -407,17 +411,18 @@ ColorImage* ColorImage::readTGA(std::istream& is)
 
         if (header[17]==0)
         {
+            uint16_t i = 0;
             for (uint16_t y=h-1; y>0; y--)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    uint16_t i = is.get();
+                    i = is.get();
                     image->pixel(x, y).r = palette[i].r;
                     image->pixel(x, y).g = palette[i].g;
                     image->pixel(x, y).b = palette[i].b;
                 }
             for (uint16_t x=0; x<w; x++)
             {
-                uint16_t i = is.get();
+                i = is.get();
                 image->pixel(x, 0).r = palette[i].r;
                 image->pixel(x, 0).g = palette[i].g;
                 image->pixel(x, 0).b = palette[i].b;
@@ -425,14 +430,17 @@ ColorImage* ColorImage::readTGA(std::istream& is)
         }
 
         else if (header[17]==32)
+        {
+            uint16_t i = 0;
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    uint16_t i = is.get();
+                    i = is.get();
                     image->pixel(x, y).r = palette[i].r;
                     image->pixel(x, y).g = palette[i].g;
                     image->pixel(x, y).b = palette[i].b;
                 }
+        }
         else
         {
             delete [] header;
@@ -460,6 +468,7 @@ void ColorImage::writePPM(std::ostream& os) const
        << "#Image sauvegardée par Robin HILAIRE\n"
        << width << " " << height << "\n"
        << "255\n";
+
     os.write((const char*)array, width*height*3);
 }
 

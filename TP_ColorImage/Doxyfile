@@ -79,7 +79,7 @@ OUTPUT_DIRECTORY       = /home/robin/Documents/cours/BUT2/R3.L01/TP/R3.L01/TP_Co
 # control the number of sub-directories.
 # The default value is: NO.
 
-CREATE_SUBDIRS         = NO
+CREATE_SUBDIRS         = YES
 
 # Controls the number of sub-directories that will be created when
 # CREATE_SUBDIRS tag is set to YES. Level 0 represents 16 directories, and every
@@ -2059,7 +2059,7 @@ LATEX_EXTRA_FILES      =
 # The default value is: YES.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-PDF_HYPERLINKS         = YES
+PDF_HYPERLINKS         = NO
 
 # If the USE_PDFLATEX tag is set to YES, doxygen will use the engine as
 # specified with LATEX_CMD_NAME to generate the PDF file directly from the LaTeX
@@ -2119,7 +2119,7 @@ LATEX_EMOJI_DIRECTORY  =
 # readers/editors.
 # The default value is: NO.
 
-GENERATE_RTF           = NO
+GENERATE_RTF           = YES
 
 # The RTF_OUTPUT tag is used to specify where the RTF docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -2620,7 +2620,7 @@ INCLUDED_BY_GRAPH      = YES
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-CALL_GRAPH             = NO
+CALL_GRAPH             = YES
 
 # If the CALLER_GRAPH tag is set to YES then doxygen will generate a caller
 # dependency graph for every global function or class method.
@@ -2632,7 +2632,7 @@ CALL_GRAPH             = NO
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-CALLER_GRAPH           = NO
+CALLER_GRAPH           = YES
 
 # If the GRAPHICAL_HIERARCHY tag is set to YES then doxygen will graphical
 # hierarchy of all classes instead of a textual one.

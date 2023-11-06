@@ -1,20 +1,32 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 
+#define CORR_PGMASCII
+#define CORR_PPMASCII
+#define CORR_BRESENHAM
+
 #include<iostream>
 #include<cstdint>
 
 extern const char * const identifier;
 extern const char * const informations;
 
+/// @brief Classe permettant de lire / écrire / manipuler des images en niveaux de gris.
 class GrayImage
 {
+    /// @brief Largeur (width) et hauteur (height), en pixels, de l'image.
     const uint16_t width, height;
+
+    /// @brief Tableau dynamique contenant les couleurs de chaque pixel de l'image.
     uint8_t *array;
 
 public :
+    /// @brief Il est impossible de construire une instance de GrayImage sans fournir aucun paramètre au constructeur.
     GrayImage() = delete;
+
+    /// @brief Il est impossible d'utiliser l'operator= pour la classe GrayImage.
     GrayImage& operator=(const GrayImage&) = delete;
+
     GrayImage(const uint16_t&, const uint16_t&);
     GrayImage(const GrayImage&);
     ~GrayImage();
@@ -43,7 +55,7 @@ public :
     static GrayImage* readTGA(std::istream&);
 
     void writePGM(std::ostream&) const;
-    void writeTGA(std::ostream&) const;
+    void writeTGA(std::ostream&, const bool& =true) const;
 
     void clear(const uint8_t& =0);
     
@@ -54,26 +66,40 @@ public :
     GrayImage* bilinearScale(const uint16_t&, const uint16_t&) const;
 };
 
+/// @brief Classe permettant de stocker une couleur au format RGB.
 class Color
 {
 public :
+    /// @brief Données membres contenant la quantité de chaque couleur (rouge, vert, bleu) dans la couleur RGB.
     uint8_t r, g, b;
 
-    inline Color (const uint8_t& _r=0, const uint8_t& _g=0, const uint8_t& _b=0)
+    /// @brief Constructeur de la classe Color à partir des valeurs à assigner à ses données membres passées en paramètre.
+    /// @param _r Quantité de rouge (red) dans la couleur RGB.
+    /// @param _g Quantité de vert (green) dans la couleur RGB.
+    /// @param _b Quantité de bleu (blue) dans la couleur RGB.
+    inline Color (const uint8_t& _r =0, const uint8_t& _g =0, const uint8_t& _b =0)
     : r(_r), g(_g), b(_b){}
 
     friend Color operator*(const double&, const Color&);
     friend Color operator+(const Color&, const Color&);
 };
 
+/// @brief Classe permettant de lire / écrire / manipuler des images en couleurs.
 class ColorImage
 {
+    /// @brief Largeur (width) et hauteur (height), en pixels, de l'image.
     uint16_t width, height;
+
+    /// @brief Tableau dynamique contenant les couleurs de chaque pixel de l'image.
     Color *array;
 
 public:
+    /// @brief Il est impossible de construire une instance de ColorImage sans fournir aucun paramètre au constructeur.
     ColorImage() = delete;
+
+    /// @brief Il est impossible d'utiliser l'operator= pour la classe ColorImage.
     ColorImage& operator=(const ColorImage&) = delete;
+
     ColorImage(const uint16_t&, const uint16_t&);
     ColorImage(const ColorImage&);
     ~ColorImage();

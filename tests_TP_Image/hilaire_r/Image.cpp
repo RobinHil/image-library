@@ -1,7 +1,8 @@
 #include"Image.hpp"
 
 const char * const identifier = "hilaire_r";
-const char * const informations = "";
+const char * const informations = "La documentation peut être générée aux formats html et rtf par Doxygen à partir du Doxyfile présent dans le dossier."
+                                  "La lecture ainsi que l'écriture d'images au format TGA en niveaux de gris sont présentes dans la classe GrayImage.";
 
 
 // Fonctions / templates générales.
@@ -20,7 +21,7 @@ void skip_comments(std::istream& is)
 {
     char c;
     do {
-        c=is.get();
+        c = is.get();
         if (c=='#')
             skip_line(is);
     } while (c=='#');
@@ -51,7 +52,7 @@ template<typename T> void swap_bytes(T& bytes)
 GrayImage::GrayImage(const uint16_t& w, const uint16_t& h)
     : width(w), height(h), array(nullptr)
 {
-    array=new uint8_t[width*height];
+    array = new uint8_t[width*height];
 }
 
 /// @brief Constructeur de copie de GrayImage.
@@ -59,9 +60,9 @@ GrayImage::GrayImage(const uint16_t& w, const uint16_t& h)
 GrayImage::GrayImage(const GrayImage& o)
     : width(o.width), height(o.height), array(nullptr)
 {
-    array=new uint8_t[o.width*o.height];
+    array = new uint8_t[o.width*o.height];
     for (size_t t=0; t<size_t(width*height); t++)
-        array[t]=o.array[t];
+        array[t] = o.array[t];
 }
 
 /// @brief Destructeur de GrayImage.
@@ -101,7 +102,13 @@ GrayImage* GrayImage::readPGM(std::istream& is)
     if (c2=='5')
         is.read((char*)image->array, w*h);
     else if (c2=='2')
-        std::cout << "à terminer lecture PGM P2" << std::endl;
+        for (uint16_t y=0; y<h; y++)
+            for (uint16_t x=0; x<w; x++)
+            {
+                int color;
+                is >> color;
+                image->pixel(x, y) = static_cast<uint8_t>(color);
+            }
 
     return image;
 }
@@ -113,15 +120,33 @@ GrayImage* GrayImage::readTGA(std::istream& is)
 {
     char *header = new char[18];
     is.read(header, 18);
-    if (*reinterpret_cast<uint16_t*>(&header[2])!=3)
-        throw std::runtime_error("Erreur: dans GrayImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car il ne s'agit pas d'un TGA en niveaux de gris.");
+
+    if (header[2]!=3)
+        throw std::runtime_error("Erreur: dans GrayImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car il ne s'agit pas d'un TGA en niveaux de gris non-compressé.");
+
     uint16_t w = *reinterpret_cast<uint16_t*>(&header[12]),
              h = *reinterpret_cast<uint16_t*>(&header[14]);
+
     is.seekg(*reinterpret_cast<uint16_t*>(&header[0])+18);
-    delete [] header;
 
     GrayImage* image = new GrayImage(w, h);
-    is.read((char*)image->array, w*h);
+
+    if (header[17]==0)
+        for (uint16_t y=0; y<h; y++)
+            for (uint16_t x=0; x<w; x++)
+                image->pixel(x, h-y-1) = is.get();
+    else if (header[17]==32)
+        for (uint16_t y=0; y<h; y++)
+            for (uint16_t x=0; x<w; x++)
+                image->pixel(x, y) = is.get();
+    else
+    {
+        delete [] header;
+        delete image;
+        throw std::runtime_error("Erreur: dans GrayImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car la valeur du dernier octet du header TGA n'est ni 0 ni 32.");
+    }
+    
+    delete [] header;
 
     return image;
 }
@@ -140,29 +165,66 @@ void GrayImage::writePGM(std::ostream& os) const
 
 /// @brief Ecrit une image au format TGA à partir d'un objet GrayImage.
 /// @param os Flux sortant contenant le fichier TGA où on va écrire l'instance courante de GrayImage.
-void GrayImage::writeTGA(std::ostream& os) const
+/// @param rle Booléen indiquant si l'image à écrire doit être compressée (true par défaut) ou non-compressée (false).
+void GrayImage::writeTGA(std::ostream& os, const bool& rle) const
 {
-    char *header = new char[18]
+    if (rle)
     {
-        0, 0, 3, 0, 0, 0,
-        0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 8, 32
-    };
-    *reinterpret_cast<uint16_t*>(&header[12]) = width;
-    *reinterpret_cast<uint16_t*>(&header[14]) = height;
-    os.write(header, 18);
-    delete [] header;
+        char *header = new char[18]
+        {
+            0, 0, 11, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 8, 32
+        };
+        *reinterpret_cast<uint16_t*>(&header[12]) = width;
+        *reinterpret_cast<uint16_t*>(&header[14]) = height;
+        os.write(header, 18);
 
-    os.write((const char*)array, width*height);
+        delete [] header;
+
+        for (uint16_t y=0; y<height; y++)
+        {
+            uint8_t RL = 0;
+            for (uint16_t x=0; x<width; x++)
+            {
+                if (
+                    x<width-1 && RL<127 &&
+                    (pixel(x, y)==pixel(x+1, y))
+                   )
+                    RL++;
+                else
+                {
+                    os.put(RL+128);
+                    os.put(pixel(x, y));
+                    RL = 0;
+                }
+            }
+        }
+    }
+    else if (!rle)
+    {
+        char *header = new char[18]
+        {
+            0, 0, 3, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 8, 32
+        };
+        *reinterpret_cast<uint16_t*>(&header[12]) = width;
+        *reinterpret_cast<uint16_t*>(&header[14]) = height;
+        os.write(header, 18);
+
+        delete [] header;
+
+        os.write((const char*)array, width*height);
+    }
 }
 
 /// @brief Efface l'image en mettant tous ses pixels à la valeur 'color'.
 /// @param color Couleur (en niveaux de gris) qui va remplacer tous les pixels de l'instance courante de GrayImage.
 void GrayImage::clear(const uint8_t& color)
 {
-    for (uint16_t x=0; x<width; x++)
-        for (uint16_t y=0; y<height; y++)
-            array[y*width+x] = color;
+    for (int i=0; i<width*height; i++)
+        array[i] = color;
 }
 
 /// @brief Dessine un cadre rectangulaire d'un pixel d'épaisseur dans l'instance courante de GrayImage.
@@ -278,7 +340,7 @@ Color operator+(const Color& c1, const Color& c2)
 ColorImage::ColorImage(const uint16_t& w, const uint16_t& h)
     : width(w), height(h), array(nullptr)
 {
-    array=new Color[width*height];
+    array = new Color[width*height];
 }
 
 /// @brief Constructeur de copie de ColorImage.
@@ -288,7 +350,7 @@ ColorImage::ColorImage(const ColorImage& o)
 {
     array=new Color[o.width*o.height];
     for (size_t t=0; t<size_t(width*height); t++)
-        array[t]=o.array[t];
+        array[t] = o.array[t];
 }
 
 /// @brief Destructeur de ColorImage.
@@ -302,10 +364,10 @@ ColorImage::~ColorImage()
 /// @return Pointeur sur une ColorImage qui aura été créée à partir de is.
 ColorImage* ColorImage::readPPM(std::istream& is)
 {
-    char c=is.get();
-    char c2=is.get();
-    if (c!='P' || c2!='6')
-        throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas au format PPM (magic number \'P6\').");
+    char c = is.get();
+    char c2 = is.get();
+    if (c!='P' || (c2!='6' && c2!='3'))
+        throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas aux formats PPM supportés (magic number \'P6\' ou \'P3\').");
 
     skip_line(is);
     skip_comments(is);
@@ -322,8 +384,21 @@ ColorImage* ColorImage::readPPM(std::istream& is)
         throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car la valeur maximale des champs de couleurs (R,G,B) d'un pixel est supérieure au maximum autorisé (maximum=255).");
     
     is.get();
-    ColorImage *image=new ColorImage(w, h);
-    is.read((char*)image->array, w*h*3);
+    ColorImage *image = new ColorImage(w, h);
+
+    if (c2=='6')
+        is.read((char*)image->array, w*h*3);
+    else if (c2=='3')
+        for (uint16_t y=0; y<h; y++)
+            for (uint16_t x=0; x<w; x++)
+            {
+                int r, g, b;
+                is >> r >> g >> b;
+
+                image->pixel(x, y).r = static_cast<uint8_t>(r);
+                image->pixel(x, y).g = static_cast<uint8_t>(g);
+                image->pixel(x, y).b = static_cast<uint8_t>(b);
+            }
 
     return image;
 }
@@ -345,21 +420,13 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     if (header[2]==2 && header[1]==0)
     {
         if (header[17]==0)
-        {
-            for (uint16_t y=h-1; y>0; y--)
+            for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    image->pixel(x, y).b = is.get();
-                    image->pixel(x, y).g = is.get();
-                    image->pixel(x, y).r = is.get();
+                    image->pixel(x, h-y-1).b = is.get();
+                    image->pixel(x, h-y-1).g = is.get();
+                    image->pixel(x, h-y-1).r = is.get();
                 }
-            for (uint16_t x=0; x<w; x++)
-            {
-                image->pixel(x, 0).b = is.get();
-                image->pixel(x, 0).g = is.get();
-                image->pixel(x, 0).r = is.get();
-            }
-        }
         else if (header[17]==32)
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
@@ -386,30 +453,21 @@ ColorImage* ColorImage::readTGA(std::istream& is)
             palette[i].r = is.get();
         }
 
+        uint16_t i = 0;
         if (header[17]==0)
-        {
-            for (uint16_t y=h-1; y>0; y--)
+            for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    uint16_t i = is.get();
-                    image->pixel(x, y).r = palette[i].r;
-                    image->pixel(x, y).g = palette[i].g;
-                    image->pixel(x, y).b = palette[i].b;
+                    i = is.get();
+                    image->pixel(x, h-y-1).r = palette[i].r;
+                    image->pixel(x, h-y-1).g = palette[i].g;
+                    image->pixel(x, h-y-1).b = palette[i].b;
                 }
-            for (uint16_t x=0; x<w; x++)
-            {
-                uint16_t i = is.get();
-                image->pixel(x, 0).r = palette[i].r;
-                image->pixel(x, 0).g = palette[i].g;
-                image->pixel(x, 0).b = palette[i].b;
-            }
-        }
-
         else if (header[17]==32)
             for (uint16_t y=0; y<h; y++)
                 for (uint16_t x=0; x<w; x++)
                 {
-                    uint16_t i = is.get();
+                    i = is.get();
                     image->pixel(x, y).r = palette[i].r;
                     image->pixel(x, y).g = palette[i].g;
                     image->pixel(x, y).b = palette[i].b;
@@ -421,6 +479,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
             delete image;
             throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car la valeur du dernier octet du header TGA n'est ni 0 ni 32.");
         }
+
         delete [] palette;
     }
     else
@@ -429,7 +488,9 @@ ColorImage* ColorImage::readTGA(std::istream& is)
         delete image;
         throw std::runtime_error("Erreur: dans ColorImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car elle n'est ni au format TGA RGB non-compressé (header[2]==2 && header[1]==0) ni au format TGA avec palette 24bits non-compressé (header[2]==1 && header[1]==1).");
     }
+
     delete [] header;
+    
     return image;
 }
 
@@ -441,12 +502,13 @@ void ColorImage::writePPM(std::ostream& os) const
        << "#Image sauvegardée par Robin HILAIRE\n"
        << width << " " << height << "\n"
        << "255\n";
+
     os.write((const char*)array, width*height*3);
 }
 
 /// @brief Ecrit une image au format TGA à partir d'un objet ColorImage.
 /// @param os Flux sortant contenant le fichier TGA où on va écrire l'instance courante de ColorImage.
-/// @param rle Bouléen indiquant si l'image à écrire doit être compressée (true par défaut) ou non-compressée (false).
+/// @param rle Booléen indiquant si l'image à écrire doit être compressée (true par défaut) ou non-compressée (false).
 void ColorImage::writeTGA(std::ostream& os, const bool& rle) const
 {
     if (rle)
@@ -611,14 +673,14 @@ void ColorImage::line(const uint16_t& x1, const uint16_t& y1, const uint16_t& x2
 {
     pixel(x2, y2) = pixel_value;
 
+    uint16_t x = x1,
+             y = y1;
+
     const uint16_t longX = abs(x2-x1),
                    longY = abs(y2-y1);
 
     const short incX = x1<x2?1:-1,
                 incY = y1<y2?1:-1;
-
-    uint16_t x = x1,
-             y = y1;
 
     if(longY<longX)
     {

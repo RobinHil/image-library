@@ -101,8 +101,8 @@ GrayImage* GrayImage::readPGM(std::istream& is)
     if (c2=='5')
         is.read((char*)image->array, w*h);
     else if (c2=='2')
-        for (uint16_t y=0; y<h; ++y)
-            for (uint16_t x=0; x<w; ++x)
+        for (uint16_t y=0; y<h; y++)
+            for (uint16_t x=0; x<w; x++)
             {
                 int color;
                 is >> color;
@@ -333,8 +333,8 @@ ColorImage* ColorImage::readPPM(std::istream& is)
     if (c2=='6')
         is.read((char*)image->array, w*h*3);
     else if (c2=='3')
-        for (uint16_t y=0; y<h; ++y)
-            for (uint16_t x=0; x<w; ++x)
+        for (uint16_t y=0; y<h; y++)
+            for (uint16_t x=0; x<w; x++)
             {
                 int r, g, b;
                 is >> r >> g >> b;

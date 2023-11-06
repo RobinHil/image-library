@@ -1,6 +1,10 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 
+#define CORR_PGMASCII
+#define CORR_PPMASCII
+#define CORR_BRESENHAM
+
 #include<iostream>
 #include<cstdint>
 
@@ -51,7 +55,7 @@ public :
     static GrayImage* readTGA(std::istream&);
 
     void writePGM(std::ostream&) const;
-    void writeTGA(std::ostream&) const;
+    void writeTGA(std::ostream&, const bool& =true) const;
 
     void clear(const uint8_t& =0);
     
@@ -66,7 +70,6 @@ public :
 class Color
 {
 public :
-    
     /// @brief Données membres contenant la quantité de chaque couleur (rouge, vert, bleu) dans la couleur RGB.
     uint8_t r, g, b;
 

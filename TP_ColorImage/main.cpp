@@ -5,7 +5,7 @@
 
 int main()
 {
-    // Tests de la classe GrayImage
+//  // Tests de la classe GrayImage
     
     {
         GrayImage *img = new GrayImage(150, 300);
@@ -70,6 +70,9 @@ int main()
         std::ofstream osImg("data/tests/GrayImage/06-read_tga_write_tga.tga", std::ios::binary);
         img->writeTGA(osImg);
 
+        std::ofstream osImgNoRLE("data/tests/GrayImage/06-read_tga_write_tga_norle.tga", std::ios::binary);
+        img->writeTGA(osImgNoRLE, false);
+
         delete img;
     }
 
@@ -110,6 +113,12 @@ int main()
         std::ofstream osImg("data/tests/GrayImage/10-clear.pgm", std::ios::binary);
         img->writePGM(osImg);
 
+        std::ofstream osImgTGARLE("data/tests/GrayImage/10-clear_rle.tga", std::ios::binary);
+        img->writeTGA(osImgTGARLE);
+
+        std::ofstream osImgTGANoRLE("data/tests/GrayImage/10-clear_norle.tga", std::ios::binary);
+        img->writeTGA(osImgTGANoRLE, false);
+
         delete img;
     }
 
@@ -124,7 +133,7 @@ int main()
     }
 
 
-    // Tests de la classe ColorImage
+//  // Tests de la classe ColorImage
 
     {
         ColorImage *img = new ColorImage(320, 240);

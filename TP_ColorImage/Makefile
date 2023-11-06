@@ -1,7 +1,7 @@
 CXX		 = g++
 CFLAGS   = -g -Wall
 CXXFLAGS = $(CFLAGS) -std=c++17
-RM		 = rm -f
+RM		 = rm -rf
 EXE		 = 
 
 EXEC = main
@@ -22,4 +22,4 @@ clean ::
 	-$(RM) *.o core
 
 distclean :: clean
-	-$(RM) $(EXECSPP) data/tests/GrayImage/* data/tests/ColorImage/*
+	-$(RM) $(EXECSPP) data/tests/GrayImage/* data/tests/ColorImage/* documentation

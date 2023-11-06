@@ -1,7 +1,8 @@
 #include"Image.hpp"
 
 const char * const identifier = "hilaire_r";
-const char * const informations = "";
+const char * const informations = "La documentation peut être générée aux formats html et rtf par Doxygen à partir du Doxyfile présent dans le dossier."
+                                  "La lecture ainsi que l'écriture d'images au format TGA en niveaux de gris sont présentes dans la classe GrayImage.";
 
 
 // Fonctions / templates générales.
@@ -128,10 +129,24 @@ GrayImage* GrayImage::readTGA(std::istream& is)
 
     is.seekg(*reinterpret_cast<uint16_t*>(&header[0])+18);
 
-    delete [] header;
-
     GrayImage* image = new GrayImage(w, h);
-    is.read((char*)image->array, w*h);
+
+    if (header[17]==0)
+        for (uint16_t y=0; y<h; y++)
+            for (uint16_t x=0; x<w; x++)
+                image->pixel(x, h-y-1) = is.get();
+    else if (header[17]==32)
+        for (uint16_t y=0; y<h; y++)
+            for (uint16_t x=0; x<w; x++)
+                image->pixel(x, y) = is.get();
+    else
+    {
+        delete [] header;
+        delete image;
+        throw std::runtime_error("Erreur: dans GrayImage::readTGA(std::istream& is) impossible de lire l'image fournie dans is car la valeur du dernier octet du header TGA n'est ni 0 ni 32.");
+    }
+    
+    delete [] header;
 
     return image;
 }
@@ -150,29 +165,66 @@ void GrayImage::writePGM(std::ostream& os) const
 
 /// @brief Ecrit une image au format TGA à partir d'un objet GrayImage.
 /// @param os Flux sortant contenant le fichier TGA où on va écrire l'instance courante de GrayImage.
-void GrayImage::writeTGA(std::ostream& os) const
+/// @param rle Booléen indiquant si l'image à écrire doit être compressée (true par défaut) ou non-compressée (false).
+void GrayImage::writeTGA(std::ostream& os, const bool& rle) const
 {
-    char *header = new char[18]
+    if (rle)
     {
-        0, 0, 3, 0, 0, 0,
-        0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 8, 32
-    };
-    *reinterpret_cast<uint16_t*>(&header[12]) = width;
-    *reinterpret_cast<uint16_t*>(&header[14]) = height;
-    os.write(header, 18);
-    delete [] header;
+        char *header = new char[18]
+        {
+            0, 0, 11, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 8, 32
+        };
+        *reinterpret_cast<uint16_t*>(&header[12]) = width;
+        *reinterpret_cast<uint16_t*>(&header[14]) = height;
+        os.write(header, 18);
 
-    os.write((const char*)array, width*height);
+        delete [] header;
+
+        for (uint16_t y=0; y<height; y++)
+        {
+            uint8_t RL = 0;
+            for (uint16_t x=0; x<width; x++)
+            {
+                if (
+                    x<width-1 && RL<127 &&
+                    (pixel(x, y)==pixel(x+1, y))
+                   )
+                    RL++;
+                else
+                {
+                    os.put(RL+128);
+                    os.put(pixel(x, y));
+                    RL = 0;
+                }
+            }
+        }
+    }
+    else if (!rle)
+    {
+        char *header = new char[18]
+        {
+            0, 0, 3, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 8, 32
+        };
+        *reinterpret_cast<uint16_t*>(&header[12]) = width;
+        *reinterpret_cast<uint16_t*>(&header[14]) = height;
+        os.write(header, 18);
+
+        delete [] header;
+
+        os.write((const char*)array, width*height);
+    }
 }
 
 /// @brief Efface l'image en mettant tous ses pixels à la valeur 'color'.
 /// @param color Couleur (en niveaux de gris) qui va remplacer tous les pixels de l'instance courante de GrayImage.
 void GrayImage::clear(const uint8_t& color)
 {
-    for (uint16_t x=0; x<width; x++)
-        for (uint16_t y=0; y<height; y++)
-            array[y*width+x] = color;
+    for (int i=0; i<width*height; i++)
+        array[i] = color;
 }
 
 /// @brief Dessine un cadre rectangulaire d'un pixel d'épaisseur dans l'instance courante de GrayImage.
@@ -456,7 +508,7 @@ void ColorImage::writePPM(std::ostream& os) const
 
 /// @brief Ecrit une image au format TGA à partir d'un objet ColorImage.
 /// @param os Flux sortant contenant le fichier TGA où on va écrire l'instance courante de ColorImage.
-/// @param rle Bouléen indiquant si l'image à écrire doit être compressée (true par défaut) ou non-compressée (false).
+/// @param rle Booléen indiquant si l'image à écrire doit être compressée (true par défaut) ou non-compressée (false).
 void ColorImage::writeTGA(std::ostream& os, const bool& rle) const
 {
     if (rle)
@@ -621,14 +673,14 @@ void ColorImage::line(const uint16_t& x1, const uint16_t& y1, const uint16_t& x2
 {
     pixel(x2, y2) = pixel_value;
 
+    uint16_t x = x1,
+             y = y1;
+
     const uint16_t longX = abs(x2-x1),
                    longY = abs(y2-y1);
 
     const short incX = x1<x2?1:-1,
                 incY = y1<y2?1:-1;
-
-    uint16_t x = x1,
-             y = y1;
 
     if(longY<longX)
     {

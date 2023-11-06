@@ -275,5 +275,25 @@ int main()
         delete img;
     }
 
+    {
+        std::ifstream isImg("data/ColorImage/Rafale30000.ppm", std::ios::binary);
+        ColorImage *img = ColorImage::readPPM(isImg);
+
+        std::ofstream osImg("data/tests/ColorImage/12-read_p3_write_tga_rle.tga", std::ios::binary);
+        img->writeTGA(osImg);
+
+        delete img;
+    }
+
+    {
+        std::ifstream isImg("data/ColorImage/Rafale30000.ppm", std::ios::binary);
+        ColorImage *img = ColorImage::readPPM(isImg);
+
+        std::ofstream osImg("data/tests/ColorImage/13-read_p3_write_tga_norle.tga", std::ios::binary);
+        img->writeTGA(osImg, false);
+
+        delete img;
+    }
+
     return EXIT_SUCCESS;
 }

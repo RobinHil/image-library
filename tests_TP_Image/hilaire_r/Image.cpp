@@ -1,7 +1,7 @@
 #include"Image.hpp"
 
 const char * const identifier = "hilaire_r";
-const char * const informations = "La documentation peut être générée aux formats html et rtf par Doxygen à partir du Doxyfile présent dans le dossier."
+const char * const informations = "La documentation peut être générée aux formats html et rtf par Doxygen à partir du Doxyfile présent dans le dossier.\n"
                                   "La lecture ainsi que l'écriture d'images au format TGA en niveaux de gris sont présentes dans la classe GrayImage.";
 
 

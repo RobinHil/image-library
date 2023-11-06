@@ -101,7 +101,13 @@ GrayImage* GrayImage::readPGM(std::istream& is)
     if (c2=='5')
         is.read((char*)image->array, w*h);
     else if (c2=='2')
-        std::cout << "à terminer lecture PGM P2" << std::endl;
+        for (uint16_t y=0; y<h; ++y)
+            for (uint16_t x=0; x<w; ++x)
+            {
+                int color;
+                is >> color;
+                image->pixel(x, y) = static_cast<uint8_t>(color);
+            }
 
     return image;
 }
@@ -304,8 +310,8 @@ ColorImage* ColorImage::readPPM(std::istream& is)
 {
     char c=is.get();
     char c2=is.get();
-    if (c!='P' || c2!='6')
-        throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas au format PPM (magic number \'P6\').");
+    if (c!='P' || (c2!='6' && c2!='3'))
+        throw std::runtime_error("Erreur: dans ColorImage::readPPM(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas aux formats PPM supportés (magic number \'P6\' ou \'P3\').");
 
     skip_line(is);
     skip_comments(is);
@@ -323,7 +329,20 @@ ColorImage* ColorImage::readPPM(std::istream& is)
     
     is.get();
     ColorImage *image=new ColorImage(w, h);
-    is.read((char*)image->array, w*h*3);
+
+    if (c2=='6')
+        is.read((char*)image->array, w*h*3);
+    else if (c2=='3')
+        for (uint16_t y=0; y<h; ++y)
+            for (uint16_t x=0; x<w; ++x)
+            {
+                int r, g, b;
+                is >> r >> g >> b;
+
+                image->pixel(x, y).r = static_cast<uint8_t>(r);
+                image->pixel(x, y).g = static_cast<uint8_t>(g);
+                image->pixel(x, y).b = static_cast<uint8_t>(b);
+            }
 
     return image;
 }

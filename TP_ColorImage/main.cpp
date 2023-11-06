@@ -35,16 +35,6 @@ int main()
         delete img;
     }
 
-    // {
-    //     std::ifstream isImg("data/GrayImage/?.pgm", std::ios::binary);
-    //     GrayImage *img = GrayImage::readPGM(isImg);
-
-    //     std::ofstream osImg("data/tests/GrayImage/03-read_p?_write_p5).pgm", std::ios::binary);
-    //     img->writePGM(osImg);
-
-    //     delete img;
-    // }
-
     {
         std::ifstream isSrc("data/GrayImage/chat_petit.pgm", std::ios::binary);
         GrayImage *src = GrayImage::readPGM(isSrc);
@@ -262,6 +252,16 @@ int main()
 
         std::ofstream osImg("data/tests/ColorImage/10-test_line++.tga");
         img->writeTGA(osImg);
+
+        delete img;
+    }
+
+    {
+        std::ifstream isImg("data/ColorImage/Rafale30000.ppm", std::ios::binary);
+        ColorImage *img = ColorImage::readPPM(isImg);
+
+        std::ofstream osImg("data/tests/ColorImage/11-read_p3_write_p6.ppm", std::ios::binary);
+        img->writePPM(osImg);
 
         delete img;
     }

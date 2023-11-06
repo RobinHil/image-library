@@ -1,5 +1,5 @@
 CXX		 = g++
-CFLAGS = -g -Wall
+CFLAGS   = -g -Wall
 CXXFLAGS = $(CFLAGS) -std=c++17
 RM		 = rm -f
 EXE		 = 

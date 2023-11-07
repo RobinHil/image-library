@@ -1,11 +1,31 @@
 #include<fstream>
 #include<cmath>
+#include<filesystem>
 
 #include"Image.hpp"
 
 int main()
 {
-//  // Tests de la classe GrayImage
+    if (!std::filesystem::exists("data/tests"))
+    {
+        if (!std::filesystem::exists("data"))
+            std::filesystem::create_directory("data");
+        std::filesystem::create_directory("data/tests");
+        std::filesystem::create_directory("data/tests/ColorImage");
+        std::filesystem::create_directory("data/tests/GrayImage");
+        std::filesystem::create_directory("data/tests/Maison");
+    }
+    else
+    {
+        if (!std::filesystem::exists("data/tests/ColorImage"))
+            std::filesystem::create_directory("data/tests/ColorImage");
+        if (!std::filesystem::exists("data/tests/GrayImage"))
+            std::filesystem::create_directory("data/tests/GrayImage");
+        if (!std::filesystem::exists("data/tests/Maison"))
+            std::filesystem::create_directory("data/tests/Maison");
+    }
+
+// Tests de la classe GrayImage
     
     {
         GrayImage *img = new GrayImage(150, 300);
@@ -133,7 +153,7 @@ int main()
     }
 
 
-//  // Tests de la classe ColorImage
+// Tests de la classe ColorImage
 
     {
         ColorImage *img = new ColorImage(320, 240);
@@ -294,6 +314,9 @@ int main()
 
         delete img;
     }
+
+
+// Tests du format Maison (.mai)
 
     {
       std::ifstream isImg("data/Maison/chat.mai", std::ios::binary);

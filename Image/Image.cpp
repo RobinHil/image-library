@@ -1,8 +1,5 @@
+/// @brief Inclusion du fichier d'en-tête.
 #include"Image.hpp"
-
-const char * const identifier = "hilaire_r";
-const char * const informations = "La documentation peut être générée aux formats html et rtf par Doxygen à partir du Doxyfile présent dans le dossier.\n"
-                                  "La lecture ainsi que l'écriture d'images au format TGA en niveaux de gris sont présentes dans la classe GrayImage.";
 
 
 // Fonctions / templates générales.
@@ -313,6 +310,17 @@ GrayImage* GrayImage::bilinearScale(const uint16_t& w, const uint16_t& h) const
 
 // Fonctions membres / friends de la classe Color.
 
+/// @brief Convertit une couleur du format CMY au format RGB.
+/// @param c Quantité de cyan (cyan) dans la couleur CMY d'origine.
+/// @param m Quantité de magenta (magenta) dans la couleur CMY d'origine.
+/// @param y Quantité de jaune (yellow) dans la couleur CMY d'origine.
+void Color::fromCMY(const uint8_t& c, const uint8_t& m, const uint8_t& y)
+{
+    r = 255-c;
+    g = 255-m;
+    b = 255-y;
+}
+
 /// @brief Opérateur de multiplication de la classe Color.
 /// @param alpha Valeur décimale par laquelle multiplier une Color en RGB.
 /// @param color Color en RGB qui va être multipliée par une valeur décimale.
@@ -357,6 +365,49 @@ ColorImage::ColorImage(const ColorImage& o)
 ColorImage::~ColorImage()
 {
     delete [] array;
+}
+
+/// @brief Lit une image au format Maison (.mai).
+/// @param is Flux d'entrée contenant l'image à transformer en ColorImage.
+/// @return Pointeur sur une ColorImage qui aura été créée à partir de is.
+ColorImage* ColorImage::readMaison(std::istream& is)
+{
+    char *magic_number = new char[6];
+    is.read(magic_number, 6);
+    if (magic_number[0]!='M' || magic_number[1]!='a' || magic_number[2]!='i' || magic_number[3]!='s' || magic_number[4]!='o' || magic_number[5]!='n')
+        throw std::runtime_error("Erreur: dans ColorImage::readMaison(std::istream& is) impossible de lire l'image fournie dans is car le fichier n'est pas au format Maison (magic number \'Maison\').");
+    delete [] magic_number;
+
+    const uint16_t size_com = is.get();
+
+    uint8_t *wh = new uint8_t[4];
+    is.read((char*)wh, 4);
+    uint16_t h = (wh[0] << 8) + wh[1],
+             w = (wh[2] << 8) + wh[3];
+    delete [] wh;
+    
+    is.seekg(11+size_com);
+
+    ColorImage *image = new ColorImage(w, h);
+    uint8_t *c = new uint8_t[w],
+            *m = new uint8_t[w],
+            *y = new uint8_t[w];
+    for (uint16_t _y=0; _y<h; _y++)
+    {
+        for (uint16_t i=0; i<w; i++)
+            c[i] = is.get();
+        for (uint16_t i=0; i<w; i++)
+            m[i] = is.get();
+        for (uint16_t i=0; i<w; i++)
+            y[i] = is.get();
+        for (uint16_t x=0; x<w; x++)
+            image->pixel(x, _y).fromCMY(c[x], m[x], y[x]);
+    }
+    delete [] c;
+    delete [] m;
+    delete [] y;
+
+    return image;
 }
 
 /// @brief Lit une image au format PPM.

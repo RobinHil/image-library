@@ -1,15 +1,10 @@
 #ifndef IMAGE_HPP
 #define IMAGE_HPP
 
-#define CORR_PGMASCII
-#define CORR_PPMASCII
-#define CORR_BRESENHAM
-
+/// @brief Inclusion des bibliothèques utiles.
 #include<iostream>
 #include<cstdint>
 
-extern const char * const identifier;
-extern const char * const informations;
 
 /// @brief Classe permettant de lire / écrire / manipuler des images en niveaux de gris.
 class GrayImage
@@ -66,6 +61,7 @@ public :
     GrayImage* bilinearScale(const uint16_t&, const uint16_t&) const;
 };
 
+
 /// @brief Classe permettant de stocker une couleur au format RGB.
 class Color
 {
@@ -80,9 +76,12 @@ public :
     inline Color (const uint8_t& _r =0, const uint8_t& _g =0, const uint8_t& _b =0)
     : r(_r), g(_g), b(_b){}
 
+    void fromCMY(const uint8_t&, const uint8_t&, const uint8_t&);
+
     friend Color operator*(const double&, const Color&);
     friend Color operator+(const Color&, const Color&);
 };
+
 
 /// @brief Classe permettant de lire / écrire / manipuler des images en couleurs.
 class ColorImage
@@ -124,6 +123,7 @@ public:
     /// @return Référence sur un Color.
     inline const Color& pixel(const uint16_t& x, const uint16_t& y) const {return array[y*width+x];}
 
+    static ColorImage * readMaison(std::istream&);
     static ColorImage* readPPM(std::istream&);
     static ColorImage* readTGA(std::istream&);
     void writePPM(std::ostream&) const;

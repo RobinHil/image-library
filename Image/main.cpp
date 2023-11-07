@@ -295,5 +295,35 @@ int main()
         delete img;
     }
 
+    {
+      std::ifstream isImg("data/Maison/chat.mai", std::ios::binary);
+      ColorImage *img = ColorImage::readMaison(isImg);
+
+      std::ofstream osImg("data/tests/Maison/chat.ppm");
+      img->writePPM(osImg);
+
+      delete img;
+    }
+
+    {
+      std::ifstream isImg("data/Maison/colibri.mai", std::ios::binary);
+      ColorImage *img = ColorImage::readMaison(isImg);
+
+      std::ofstream osImg("data/tests/Maison/colibri.ppm");
+      img->writePPM(osImg);
+
+      delete img;
+    }
+
+    {
+      std::ifstream isImg("data/Maison/lena.mai", std::ios::binary);
+      ColorImage *img = ColorImage::readMaison(isImg);
+
+      std::ofstream osImg("data/tests/Maison/lena.ppm");
+      img->writePPM(osImg);
+
+      delete img;
+    }
+
     return EXIT_SUCCESS;
 }

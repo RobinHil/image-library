@@ -1,6 +1,5 @@
 # Custom
-TP_GrayImage/dataGrayImage
-TP_ColorImage/data
+*data
 *.vscode
 *main
 *documentation

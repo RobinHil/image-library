@@ -1,7 +1,5 @@
 # Custom
-*tests/ColorImage/*
-*tests/GrayImage/*
-*tests/Maison/*
+*tests
 *.vscode
 *main
 *documentation

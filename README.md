@@ -1,86 +1,70 @@
-# Bibliothèque Image
+# Image Library
 
-Une bibliothèque C++ moderne pour la lecture, l'écriture et le traitement d'images en niveaux de gris et en couleurs RGB.
+A C++17 library for reading, writing and processing 8-bit grayscale and 24-bit
+RGB images, with no external dependencies.
 
-## Fonctionnalités
+## Formats
 
-### Formats d'images supportés
+| Format | Read | Write |
+| --- | --- | --- |
+| PGM (Portable GrayMap) | P2 (ASCII) and P5 (binary) | P5 (binary) |
+| PPM (Portable PixMap) | P3 (ASCII) and P6 (binary) | P6 (binary) |
+| TGA (Truevision) | uncompressed grayscale and RGB, 24-bit color-mapped | with or without RLE compression |
+| MAI (in-house CMY format) | yes | no |
 
-- **PGM (Portable GrayMap)**
-  - Lecture des formats P2 (ASCII) et P5 (Binaire)
-  - Écriture au format P5 (Binaire)
+## Processing
 
-- **PPM (Portable PixMap)**
-  - Lecture des formats P3 (ASCII) et P6 (Binaire)
-  - Écriture au format P6 (Binaire)
+Both `GrayImage` and `ColorImage` support:
 
-- **TGA (Truevision Graphics Adapter)**
-  - Lecture des images non compressées en niveaux de gris et RGB
-  - Support des images avec palette de couleurs 24 bits
-  - Écriture avec ou sans compression RLE (Run-Length Encoding)
+- Allocation, clearing, and per-pixel access.
+- Filled and outlined rectangles.
+- Scaling, either nearest-neighbour (`simpleScale`) or bilinear
+  (`bilinearScale`).
 
-- **Format Maison (.mai)**
-  - Lecture d'images au format propriétaire CMY
+`ColorImage` adds Bresenham line drawing (`line`), and `Color::fromCMY` converts
+a CMY triple into RGB, which is how the MAI format is decoded.
 
-### Fonctionnalités de traitement
+## Building
 
-#### Images en niveaux de gris (GrayImage)
-- Création et manipulation d'images 8 bits
-- Dessin de rectangles (pleins ou vides)
-- Redimensionnement d'images:
-  - Méthode simple (plus proche voisin)
-  - Méthode bilinéaire (meilleure qualité)
-
-#### Images couleur (ColorImage)
-- Manipulation d'images RGB 24 bits
-- Dessin de rectangles (pleins ou vides)
-- Tracé de lignes avec l'algorithme de Bresenham
-- Redimensionnement d'images:
-  - Méthode simple (plus proche voisin)
-  - Méthode bilinéaire (meilleure qualité)
-- Support des espaces de couleurs RGB et CMY
-
-## Utilisation
-
-### Installation
+Requires a C++17 compiler and `make`.
 
 ```bash
-git clone https://github.com/RobinHil/image-library.git
-cd image-library
+cd Image
+make
+./main
 ```
 
-### Exemples d'utilisation
+`main` is a test harness: it runs the library over the sample images in `data/`
+and writes the results into `data/tests/`, which it creates if needed.
 
-#### Création et manipulation d'une image en niveaux de gris
+```bash
+make clean       # object files
+make distclean   # object files, the binary, and data/tests/
+```
+
+## Usage
+
+Creating and drawing on a grayscale image:
 
 ```cpp
-// Création d'une image 150x300
 GrayImage *img = new GrayImage(150, 300);
-
-// Remplissage avec du blanc
 img->clear(255);
-
-// Dessin d'un rectangle noir
 img->fillRectangle(1, 2, 50, 72, 0);
 
-// Sauvegarde au format PGM
 std::ofstream os("image.pgm", std::ios::binary);
 img->writePGM(os);
 
 delete img;
 ```
 
-#### Lecture et redimensionnement d'une image couleur
+Reading a color image, scaling it, and writing it back as RLE-compressed TGA:
 
 ```cpp
-// Lecture d'une image PPM
 std::ifstream is("input.ppm", std::ios::binary);
 ColorImage *img = ColorImage::readPPM(is);
 
-// Redimensionnement bilinéaire
 ColorImage *resized = img->bilinearScale(823, 400);
 
-// Sauvegarde au format TGA avec compression RLE
 std::ofstream os("output.tga", std::ios::binary);
 resized->writeTGA(os, true);
 
@@ -88,10 +72,23 @@ delete img;
 delete resized;
 ```
 
-## Détails techniques
+Streams must be opened in binary mode, and both the reader factories and the
+scaling methods return objects the caller owns and must `delete`.
 
-### Classes principales
+## Classes
 
-- **GrayImage** : Gestion des images en niveaux de gris (8 bits)
-- **ColorImage** : Gestion des images couleur RGB (24 bits)
-- **Color** : Classe utilitaire pour la manipulation des couleurs
+- `GrayImage` - 8-bit grayscale images.
+- `ColorImage` - 24-bit RGB images.
+- `Color` - a single RGB triple, with `fromCMY` and arithmetic operators used by
+  the scaling code.
+
+## Layout
+
+```
+Image/
+  Image.hpp / Image.cpp   the library
+  main.cpp                test harness
+  Makefile
+  Doxyfile                documentation config
+  data/                   sample images (PGM, PPM, TGA, MAI)
+```

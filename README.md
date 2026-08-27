@@ -26,7 +26,8 @@ a CMY triple into RGB, which is how the MAI format is decoded.
 
 ## Building
 
-Requires a C++17 compiler and `make`.
+Requires a C++17 compiler and `make`. The code also builds cleanly under
+C++20 and C++23, and with `-Wall -Wextra`.
 
 ```bash
 cd Image

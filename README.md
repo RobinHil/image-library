@@ -35,8 +35,14 @@ make
 ./main
 ```
 
-`main` is a test harness: it runs the library over the sample images in `data/`
-and writes the results into `data/tests/`, which it creates if needed.
+`main` is a test harness: it runs the library over the images in `data/` and
+writes the results into `data/tests/`, which it creates if needed.
+
+The sample images are **not distributed with this repository** - they came from
+a university course and are not mine to redistribute. Supply your own and place
+them where `main.cpp` expects them (`data/GrayImage/`, `data/ColorImage/` and
+`data/Maison/`), or read `main.cpp` and adapt the paths. The library itself has
+no dependency on them.
 
 ```bash
 make clean       # object files
